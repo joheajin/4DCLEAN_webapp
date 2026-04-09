@@ -21,9 +21,8 @@
       .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: #1f2937; border-top: 1px solid #374151; display: flex; justify-content: center; z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); }
       .save-work-btn-large { width: 100%; max-width: 600px; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.15rem; cursor: pointer; }
       
-      /* 로딩 및 게이지 스타일 */
       .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
-      .progress-container { width: 80%; max-width: 300px; background: #374151; height: 10px; border-radius: 5px; margin-top: 20px; overflow: hidden; }
+      .progress-container { width: 80%; max-width: 300px; background: #374151; height: 12px; border-radius: 6px; margin-top: 20px; overflow: hidden; }
       .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
       .spinner { width: 45px; height: 45px; border: 4px solid #374151; border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
@@ -32,30 +31,20 @@
       .checklist-item input[type="checkbox"] { width: 24px; height: 24px; margin: 0; cursor: pointer; flex-shrink: 0; }
       .checklist-item span { flex: 1; font-weight: 600; font-size: 0.95rem; }
       .btn-del-item { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; flex-shrink: 0; }
+      
       .rule-row { background: #111827; padding: 15px; border-radius: 10px; border: 1px solid #374151; margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px; position: relative; }
-      .rule-header { display: flex; justify-content: flex-end; margin-bottom: 2px; }
       .delete-rule { color: var(--danger); font-weight: bold; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
-      #addCustomItemBtn { white-space: nowrap; min-width: 60px; }
+      
       .weather-badge { font-size:0.85rem; color:#a5b4fc; margin-bottom:15px; background:#312e81; padding:8px 12px; border-radius:6px; display:inline-block; font-weight:bold; }
       .extra-photo-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; background: #111827; padding: 12px; border-radius: 10px; border: 1px dashed #4b5563; }
       
-      .photo-btn-label {
-        display: block;
-        width: 100%;
-        padding: 10px;
-        background: var(--primary);
-        color: white;
-        text-align: center;
-        border-radius: 6px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: opacity 0.3s, background 0.3s;
-      }
-      .photo-btn-label.disabled {
-        background: #4b5563;
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+      .photo-btn-label { display: block; width: 100%; padding: 10px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; }
+      .photo-btn-label.disabled { background: #4b5563; opacity: 0.5; cursor: not-allowed; }
+
+      .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+      .time-box { background: #374151; padding: 10px; border-radius: 8px; border: 1px solid #4b5563; }
+      .btn-expand { background: #4b5563; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-top: 5px; transition: all 0.2s; }
+      .btn-expand.active { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
     </style>
   </head>
   <body class="dark-mode">
@@ -79,6 +68,25 @@
             <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
           <label style="margin-top:10px; display:block;">대상 건물 <select id="buildingSelect" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
+          
+          <!-- 작업 시간 섹션 (복구 및 기능 강화) -->
+          <div class="time-select-grid">
+            <div class="time-box">
+              <label>시작 시간</label>
+              <div style="display:flex; gap:5px;">
+                <select id="startHour" onchange="syncEndTime()"></select>
+                <select id="startMin" onchange="syncEndTime()"><option value="00">00분</option><option value="30">30분</option></select>
+              </div>
+            </div>
+            <div class="time-box">
+              <label>종료 시간</label>
+              <div style="display:flex; gap:5px;">
+                <select id="endHour"></select>
+                <select id="endMin"><option value="00">00분</option><option value="30">30분</option></select>
+              </div>
+            </div>
+          </div>
+          <button type="button" id="btnExpandTime" class="btn-expand">시간 확장 (00~23시)</button>
         </section>
 
         <section class="card">
@@ -100,7 +108,6 @@
           </div>
           <input id="photoThermometer" type="file" accept="image/*" capture="environment" style="display:none;">
           <button type="button" onclick="document.getElementById('photoThermometer').click()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:15px;">📸 온습도계 사진 촬영</button>
-          
           <div id="fieldPhotos"></div>
           <button id="addFieldPhotoBtn" type="button" style="width:100%; margin-top:10px; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
         </section>
@@ -112,10 +119,10 @@
         </section>
       </div>
 
+      <!-- 설정 탭 -->
       <div id="settings-tab" class="tab-content" style="display:none;">
         <section class="card">
-          <h2 style="color:var(--primary); border-bottom-color: var(--primary);">규칙 관리 및 서버 동기화</h2>
-          <p style="font-size:12px; color:gray; margin-bottom:20px; line-height: 1.4;">[서버 저장]을 누르면 구글 시트에 기록되어 모든 기기가 동일한 규칙을 공유합니다.</p>
+          <h2 style="color:var(--primary);">규칙 관리 및 서버 동기화</h2>
           <div id="rulesAdminContainer">
             <h3>기본 규칙 (요일별)</h3>
             <div id="defaultRulesList"></div>
@@ -127,7 +134,7 @@
             <div id="eventRulesList"></div>
             <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:20px;">+ 고객요청 규칙 추가</button>
           </div>
-          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold; font-size:1.1rem;">🌐 서버에 규칙 저장 및 동기화</button>
+          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold; font-size:1.1rem;">🌐 서버에 규칙 저장</button>
         </section>
       </div>
     </main>
@@ -139,24 +146,75 @@
     <!-- 로딩 게이지 오버레이 -->
     <div id="loadingOverlay" class="loading-overlay">
       <div class="spinner"></div>
-      <p id="loadingText" style="margin-top:20px; font-weight:bold; text-align:center; font-size: 1.1rem; color: #fff;">데이터 분석 중...</p>
+      <p id="loadingTitle" style="margin-top:20px; font-weight:bold; text-align:center; font-size: 1.2rem; color: #fff;">데이터 처리 중...</p>
       <div class="progress-container">
         <div id="progressBar" class="progress-bar"></div>
       </div>
-      <p id="progressStatus" style="margin-top: 10px; font-size: 0.85rem; color: #9ca3af;">준비 중...</p>
+      <p id="progressStatus" style="margin-top: 15px; font-size: 0.95rem; color: #a5b4fc; font-weight: 500;">파일을 준비하고 있습니다...</p>
     </div>
 
     <script>
       const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgkKi6qzWkd4ZBM1xECxtgdO80ynvIaUb5C3YoQQ6z7Ae_qN6hb1WnYXBircD5QThJDw/exec";
       let globalRules = JSON.parse(localStorage.getItem('4d_rules_cache')) || { defaultRules: [], monthlyRules: [], eventRules: [] };
       let extraPhotoCount = 0;
+      let isExpanded = false;
 
       window.onload = async () => {
+        initTimeOptions();
         initSelects();
         flatpickr("#workDate", { locale: "ko", defaultDate: "today", onChange: updateChecklist });
         renderSettingsUI();
         updateChecklist();
         fetchWeather();
+        
+        // 성도님 지시사항: 기본값 06:00 세팅 및 종료시간 자동화
+        document.getElementById('startHour').value = "06";
+        document.getElementById('startMin').value = "00";
+        syncEndTime();
+      };
+
+      // [혁신] 시작 시간에 맞춘 종료 시간 자동 동기화 (+1시간)
+      function syncEndTime() {
+        const startH = parseInt(document.getElementById('startHour').value);
+        const startM = document.getElementById('startMin').value;
+        
+        let endH = startH + 1;
+        
+        // 시간 확장 여부에 따른 상한선 처리
+        const maxH = isExpanded ? 23 : 20;
+        if (endH > maxH) endH = maxH;
+        
+        document.getElementById('endHour').value = endH.toString().padStart(2, '0');
+        document.getElementById('endMin').value = startM;
+      }
+
+      function initTimeOptions() {
+        const startH = document.getElementById('startHour');
+        const endH = document.getElementById('endHour');
+        const range = isExpanded ? {start: 0, end: 23} : {start: 6, end: 20};
+        
+        // 현재 선택된 값 보존 시도
+        const curStart = startH.value;
+        const curEnd = endH.value;
+
+        startH.innerHTML = ''; endH.innerHTML = '';
+        for(let i=range.start; i<=range.end; i++) {
+          const val = i.toString().padStart(2, '0');
+          startH.innerHTML += `<option value="${val}">${val}시</option>`;
+          endH.innerHTML += `<option value="${val}">${val}시</option>`;
+        }
+
+        // 값 복구 (범위 내에 있을 경우)
+        if (curStart && parseInt(curStart) >= range.start && parseInt(curStart) <= range.end) startH.value = curStart;
+        if (curEnd && parseInt(curEnd) >= range.start && parseInt(curEnd) <= range.end) endH.value = curEnd;
+      }
+
+      document.getElementById('btnExpandTime').onclick = function() {
+        isExpanded = !isExpanded;
+        this.innerText = isExpanded ? "시간 축소 (06~20시)" : "시간 확장 (00~23시)";
+        this.classList.toggle('active', isExpanded);
+        initTimeOptions();
+        syncEndTime(); // 확장 후에도 논리적 시간 재정렬
       };
 
       function initSelects() {
@@ -175,12 +233,10 @@
         div.id = `row_extra_${extraPhotoCount}`;
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
-             <span style="font-size:0.8rem; color:var(--primary); font-weight:bold;">📸 작업 사진 증빙 #${extraPhotoCount}</span>
-             <button type="button" onclick="document.getElementById('row_extra_${extraPhotoCount}').remove()" style="background:none; border:none; color:var(--danger); font-size:0.8rem; cursor:pointer;">삭제</button>
+             <span style="font-size:0.8rem; color:var(--primary); font-weight:bold;">📸 작업 사진 #${extraPhotoCount}</span>
+             <button type="button" onclick="document.getElementById('row_extra_${extraPhotoCount}').remove()" style="background:none; border:none; color:var(--danger); font-size:0.8rem;">삭제</button>
           </div>
-          <label>사진 설명 (필수)
-            <input type="text" id="desc_extra_${extraPhotoCount}" placeholder="예: 거실 바닥 청소 전" oninput="togglePhotoBtn(${extraPhotoCount})">
-          </label>
+          <input type="text" id="desc_extra_${extraPhotoCount}" placeholder="사진 설명 (예: 창틀 청소 후)" oninput="togglePhotoBtn(${extraPhotoCount})">
           <label id="label_file_extra_${extraPhotoCount}" class="photo-btn-label disabled">
             사진촬영
             <input type="file" id="file_extra_${extraPhotoCount}" accept="image/*" capture="environment" style="display:none;" disabled>
@@ -193,13 +249,10 @@
         const descInput = document.getElementById(`desc_extra_${id}`);
         const fileLabel = document.getElementById(`label_file_extra_${id}`);
         const fileInput = document.getElementById(`file_extra_${id}`);
-        if (descInput.value.trim().length > 0) {
-          fileLabel.classList.remove('disabled');
-          fileInput.disabled = false;
-        } else {
-          fileLabel.classList.add('disabled');
-          fileInput.disabled = true;
-        }
+        const hasText = descInput.value.trim().length > 0;
+        fileLabel.style.opacity = hasText ? "1" : "0.5";
+        fileLabel.style.background = hasText ? "var(--primary)" : "#4b5563";
+        fileInput.disabled = !hasText;
       }
 
       function switchTab(t) {
@@ -207,13 +260,7 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(t + '-tab').style.display = 'block';
         document.querySelector(`[data-tab="${t}"]`).classList.add('active');
-        if(t === 'settings') renderSettingsUI();
       }
-
-      document.getElementById('themeToggleBtn').onclick = () => {
-        document.body.classList.toggle('dark-mode');
-        document.getElementById('themeToggleBtn').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
-      };
 
       function fetchWeather() {
         if (!navigator.geolocation) return;
@@ -224,7 +271,7 @@
             const codes = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비' };
             document.getElementById('weatherInfoText').innerText = `날씨정보 : ${codes[data.current.weather_code] || '정보없음'} (${data.current.temperature_2m}°C, 습도 ${data.current.relative_humidity_2m}%)`;
           } catch (e) { document.getElementById('weatherInfoText').innerText = "날씨 연동 실패"; }
-        }, null, {enableHighAccuracy:true, timeout:10000});
+        });
       }
 
       function updateChecklist() {
@@ -241,7 +288,7 @@
         const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
         if(ev) tasks = ev.tasks; else if(mo) tasks = mo.tasks; else if(de) tasks = de.tasks;
         if(tasks) { tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false)); }
-        else { list.innerHTML = `<li style="text-align:center; padding:15px; color:gray; border:1px dashed #374151; border-radius:8px;">등록된 규칙 없음</li>`; }
+        else { list.innerHTML = `<li style="color:gray; padding:10px; border:1px dashed #374151; border-radius:8px; text-align:center;">등록된 규칙 없음</li>`; }
       }
 
       function addChecklistItem(text, isDeletable, isChecked) {
@@ -270,61 +317,38 @@
       function addRuleRow(type, data = {}) {
         const div = document.createElement('div');
         div.className = 'rule-row';
-        let html = `<div class="rule-header"><button type="button" class="delete-rule" onclick="this.parentElement.parentElement.remove()">삭제</button></div>
+        div.innerHTML = `<div class="rule-header"><button type="button" class="delete-rule" onclick="this.parentElement.parentElement.remove()">삭제</button></div>
                     <select class="rule-building"><option value="백산빌딩" ${data.building==='백산빌딩'?'selected':''}>백산빌딩</option><option value="효성빌딩" ${data.building==='효성빌딩'?'selected':''}>효성빌딩</option></select>`;
-        if(type === 'default') { html += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`; }
+        if(type === 'default') { div.innerHTML += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`; }
         else if(type === 'monthly') {
-          html += `<select class="rule-weekorder">${['첫째','둘째','셋째','넷째','다섯째'].map(w=>`<option value="${w}" ${data.weekOrder===w?'selected':''}>${w} 주</option>`).join('')}</select>`;
-          html += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
-        } else if(type === 'event') { html += `<input type="text" class="rule-date" placeholder="날짜 선택" value="${data.date || ''}" readonly>`; }
-        html += `<textarea class="rule-tasks" placeholder="청소 항목 (엔터로 구분)">${data.tasks || ''}</textarea>`;
-        div.innerHTML = html;
+          div.innerHTML += `<select class="rule-weekorder">${['첫째','둘째','셋째','넷째','다섯째'].map(w=>`<option value="${w}" ${data.weekOrder===w?'selected':''}>${w} 주</option>`).join('')}</select>`;
+          div.innerHTML += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
+        } else if(type === 'event') { div.innerHTML += `<input type="text" class="rule-date" value="${data.date || ''}" readonly>`; }
+        div.innerHTML += `<textarea class="rule-tasks" placeholder="청소 항목">${data.tasks || ''}</textarea>`;
         document.getElementById(`${type}RulesList`).appendChild(div);
-        if (type === 'event') { flatpickr(div.querySelector('.rule-date'), { locale: "ko", dateFormat: "Y-m-d", defaultDate: data.date || "today" }); }
+        if (type === 'event') { flatpickr(div.querySelector('.rule-date'), { locale: "ko", dateFormat: "Y-m-d" }); }
       }
 
-      function collectRules() {
-        const getRowData = (listId, type) => {
-          return Array.from(document.getElementById(listId).children).map(row => {
-            const data = { building: row.querySelector('.rule-building').value, tasks: row.querySelector('.rule-tasks').value };
-            if(type === 'default') data.weekday = row.querySelector('.rule-weekday').value;
-            if(type === 'monthly') { data.weekOrder = row.querySelector('.rule-weekorder').value; data.weekday = row.querySelector('.rule-weekday').value; }
-            if(type === 'event') data.date = row.querySelector('.rule-date').value;
-            return data;
-          });
-        };
-        globalRules.defaultRules = getRowData('defaultRulesList', 'default');
-        globalRules.monthlyRules = getRowData('monthlyRulesList', 'monthly');
-        globalRules.eventRules = getRowData('eventRulesList', 'event');
-      }
-
-      document.getElementById('saveRulesToServerBtn').onclick = async () => {
-        collectRules();
-        localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules));
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.style.display = 'flex';
-        try { await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({action:"SAVE_RULES", rules: globalRules}) }); alert("✅ 서버 저장 완료!"); updateChecklist(); } catch (e) { alert("저장 중 오류 발생"); }
-        finally { loadingOverlay.style.display = 'none'; }
-      };
-
-      // [프로그레스 강화] 작업 전송 로직
       document.getElementById('saveWorkBtn').onclick = async () => {
         const loadingOverlay = document.getElementById('loadingOverlay');
         const progressBar = document.getElementById('progressBar');
         const progressStatus = document.getElementById('progressStatus');
-        const loadingText = document.getElementById('loadingText');
+        const loadingTitle = document.getElementById('loadingTitle');
         
         loadingOverlay.style.display = 'flex';
-        progressBar.style.width = '0%';
-        progressStatus.innerText = "데이터 수집 중...";
+        progressBar.style.width = '5%';
+        progressStatus.innerText = "데이터 취합 중...";
 
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("시간 초과")), 90000));
         const toB64 = f => new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(f); });
-        
+        const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
         try {
+          const startT = `${document.getElementById('startHour').value}:${document.getElementById('startMin').value}`;
+          const endT = `${document.getElementById('endHour').value}:${document.getElementById('endMin').value}`;
+          
           const payload = {
             workDate: document.getElementById('workDate').value,
-            workTime: new Date().toLocaleTimeString('ko-KR', {hour12:false, hour:'2-digit', minute:'2-digit'}),
+            workTime: `${startT} ~ ${endT}`,
             building: document.getElementById('buildingSelect').value,
             worker: document.getElementById('workerName').value,
             weather: document.getElementById('weatherInfoText').innerText,
@@ -337,55 +361,45 @@
             photos: []
           };
 
-          // 전송할 파일 선별
           const thFile = document.getElementById('photoThermometer').files[0];
           const extraPhotoRows = Array.from(document.querySelectorAll('.extra-photo-row')).filter(row => row.querySelector('input[type="file"]').files[0]);
           const totalFiles = (thFile ? 1 : 0) + extraPhotoRows.length;
           let processedFiles = 0;
 
-          // 파일 변환 및 게이지 업데이트 함수
-          const updateGauge = (idx, name) => {
-            const percent = ((idx / (totalFiles + 1)) * 100).toFixed(0);
-            progressBar.style.width = percent + '%';
-            progressStatus.innerText = `[${idx}/${totalFiles}] ${name} 변환 중...`;
-          };
-
-          // 1. 온습도계 사진 처리
           if(thFile) {
-            updateGauge(++processedFiles, "온습도계 사진");
+            processedFiles++;
+            const pct = Math.floor((processedFiles / (totalFiles + 1)) * 90);
+            progressBar.style.width = pct + '%';
+            progressStatus.innerText = `[${processedFiles}/${totalFiles}] 온습도계 사진 변환 중...`;
+            await sleep(500);
             payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await toB64(thFile) });
           }
 
-          // 2. 추가 작업 사진들 처리
           for(let row of extraPhotoRows) {
+            processedFiles++;
             const input = row.querySelector('input[type="file"]');
             const desc = row.querySelector('input[type="text"]').value.trim() || "작업사진";
-            updateGauge(++processedFiles, desc);
-            payload.photos.push({ 
-              fileName: `${payload.workDate.replace(/-/g,'')}_${desc.replace(/\s+/g,'_')}.JPG`, 
-              data: await toB64(input.files[0]) 
-            });
+            const pct = Math.floor((processedFiles / (totalFiles + 1)) * 90);
+            progressBar.style.width = pct + '%';
+            progressStatus.innerText = `[${processedFiles}/${totalFiles}] ${desc} 변환 중...`;
+            await sleep(500);
+            payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${desc.replace(/\s+/g,'_')}.JPG`, data: await toB64(input.files[0]) });
           }
 
-          // 3. 최종 전송 단계
           progressBar.style.width = '95%';
-          progressStatus.innerText = "서버로 최종 일지 전송 중...";
-          loadingText.innerText = "네트워크 연결 중...";
+          loadingTitle.innerText = "서버 전송 중...";
+          progressStatus.innerText = "구글 시트에 데이터를 기록하고 있습니다. 잠시만 기다려주세요.";
 
-          await Promise.race([ 
-            fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) }), 
-            timeoutPromise 
-          ]);
+          await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
 
           progressBar.style.width = '100%';
           progressStatus.innerText = "전송 완료!";
+          await sleep(500);
           alert("✅ 일지 전송 성공! 수고하셨습니다.");
           location.reload();
 
         } catch (e) {
-          console.error(e);
-          alert(e.message === "시간 초과" ? "⚠️ 전송 지연 중. 시트에서 기록을 확인하세요." : "❌ 에러: " + e.message);
-        } finally {
+          alert("❌ 에러: " + e.message);
           loadingOverlay.style.display = 'none';
         }
       };
