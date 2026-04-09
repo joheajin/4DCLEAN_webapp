@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>4D클린 현장 일지 (Master-Sync)</title>
+    <title>4D클린 현장 일지 (Master)</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
@@ -19,7 +19,6 @@
         --text-muted: #64748b;
         --border-color: #e2e8f0;
         --input-bg: #ffffff;
-        --weather-available: #eab308; /* 더 선명한 황금색으로 조정 */
       }
       body.dark-mode {
         --bg-main: #0f172a;
@@ -29,7 +28,6 @@
         --text-muted: #94a3b8;
         --border-color: #475569;
         --input-bg: #1e293b;
-        --weather-available: #facc15; /* 다크모드용 밝은 노랑 */
       }
       body { font-family: sans-serif; background: var(--bg-main); margin: 0; padding: 10px; padding-bottom: 80px; color: var(--text-main); transition: all 0.3s ease; }
       .container { max-width: 600px; margin: 0 auto; background: var(--bg-container); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -40,39 +38,26 @@
       .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
       label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
       input, select, textarea { width: 100%; padding: 10px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); margin-top: 4px; box-sizing: border-box; font-size: 0.95rem; }
-      
-      /* [중요] Flatpickr 날짜 색상 강제 지정 - 우선순위 확보 */
-      .flatpickr-day.available-day { 
-        color: var(--weather-available) !important; 
-        font-weight: 900 !important; 
-        border-bottom: 3px solid var(--weather-available) !important;
-        text-shadow: 0px 1px 2px rgba(0,0,0,0.1) !important;
-      }
-
-      /* 선택된 날짜일 때는 텍스트를 흰색으로 (가독성 보호) */
-      .flatpickr-day.selected.available-day {
-        color: #ffffff !important;
-        border-bottom-color: transparent !important;
-      }
-
-      .dark-mode .flatpickr-calendar { background: #1e293b; color: #fff; border: 1px solid #475569; }
-      .dark-mode .flatpickr-day { color: #cbd5e1; }
-      .dark-mode .flatpickr-day.selected { background: var(--primary); color: white !important; }
-
       .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
       .time-box { background: var(--bg-card); padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border-color); }
-      .time-box label { font-size: 0.75rem; color: var(--text-muted); }
-      .time-box div { display: flex; gap: 4px; margin-top: 5px; }
       .time-box select { flex: 1; padding: 8px 4px; font-size: 0.85rem; min-width: 0; text-align: center; }
-
-      .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: var(--bg-container); border-top: 1px solid var(--border-color); display: flex; justify-content: center; z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); }
+      .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: var(--bg-container); border-top: 1px solid var(--border-color); display: flex; justify-content: center; z-index: 100; }
       .save-work-btn-large { width: 100%; max-width: 600px; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
-      
+      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
+      .progress-container { width: 80%; max-width: 300px; background: #475569; height: 10px; border-radius: 5px; margin-top: 20px; overflow: hidden; }
+      .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
+      .spinner { width: 40px; height: 40px; border: 4px solid #475569; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
       .checklist-item { display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border-color); }
       .checklist-item input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; }
       .checklist-item span { flex: 1; font-size: 0.9rem; }
-      
-      .weather-badge { font-size: 0.8rem; color: #fff; margin-bottom: 12px; background: var(--primary); padding: 8px 14px; border-radius: 10px; display: inline-block; font-weight: bold; box-shadow: 0 2px 5px rgba(99, 102, 241, 0.3); }
+      .btn-del-item { color: var(--danger); background: none; border: 1px solid var(--danger); padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; }
+      .btn-expand { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 5px; font-size: 0.75rem; width: 100%; margin-top: 8px; cursor: pointer; }
+      .btn-expand.active { background: var(--primary); color: white; }
+      .weather-badge { font-size: 0.8rem; color: #fff; margin-bottom: 12px; background: var(--primary); padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: bold; }
+      .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; }
+      .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+      .photo-btn-label.disabled { background: var(--text-muted); opacity: 0.5; cursor: not-allowed; }
     </style>
   </head>
   <body class="dark-mode">
@@ -90,11 +75,9 @@
       <div id="main-tab" class="tab-content active">
         <section class="card">
           <h2>1) 작업 기본 정보</h2>
-          <div id="weatherInfoText" class="weather-badge">📍 기상 데이터 로딩 중...</div>
-          <div style="font-size: 10px; color: var(--weather-available); margin-bottom: 10px; font-weight: bold;">* 노란색 날짜: 날씨 조회가 가능한 날</div>
-          
+          <div id="weatherInfoText" class="weather-badge">📍 날씨 데이터 연동 중...</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택"></label>
+            <label>작업 날짜 <input id="workDate" type="date"></label>
             <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
           <label style="margin-top:10px;">대상 건물 <select id="buildingSelect" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
@@ -115,11 +98,12 @@
               </div>
             </div>
           </div>
-          <button type="button" id="btnExpandTime" style="margin-top:10px; width:100%; padding:8px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; cursor:pointer; font-size:0.8rem; color:var(--text-main);">시간 확장 (00~23시)</button>
+          <button type="button" id="btnExpandTime" class="btn-expand">시간 확장 (00~23시)</button>
         </section>
 
         <section class="card">
           <h2 style="border-bottom:none; margin-bottom:4px;">2) 오늘의 청소 체크리스트</h2>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">우선순위: 고객요청 이벤트 → 월정기 → 기본</div>
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
           <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
@@ -128,134 +112,161 @@
         </section>
 
         <section class="card">
-          <h2>3) 환경 데이터</h2>
+          <h2>3) 사진 및 환경 데이터</h2>
+          <div style="font-size:10px; color:#10b981; margin-bottom:10px; background: rgba(16, 185, 129, 0.1); padding: 8px; border-radius: 4px;">※ 온습도계 촬영 시 OCR 엔진이 자동 판독합니다.</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
              <label>내부 온도 <select id="interiorTemp"></select></label>
              <label>내부 습도 <select id="interiorHumidity"></select></label>
           </div>
-          <button type="button" class="save-work-btn-large" style="background:#10b981; margin-bottom:10px;">📸 작업 사진 촬영</button>
+          <input id="photoThermometer" type="file" accept="image/*" capture="environment" style="display:none;">
+          <button type="button" onclick="document.getElementById('photoThermometer').click()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:10px;">📸 온습도계 사진 촬영</button>
+          <div id="fieldPhotos"></div>
+          <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
+        </section>
+
+        <section class="card">
+          <h2>4) 마무리 기록</h2>
+          <label>고객 요청사항 <textarea id="customerRequest" rows="2" placeholder="전달사항 입력"></textarea></label>
+          <label style="margin-top:10px;">작업자 메모 <textarea id="workMemo" rows="2" placeholder="특이사항"></textarea></label>
         </section>
       </div>
 
       <div id="settings-tab" class="tab-content" style="display:none;">
         <section class="card">
-          <h2 style="color:var(--primary);">서버 동기화 설정</h2>
-          <button type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold;">🌐 서버에 규칙 저장</button>
+          <h2 style="color:var(--primary);">규칙 관리 및 서버 동기화</h2>
+          <div id="rulesAdminContainer">
+            <h3 style="font-size:0.9rem;">기본 규칙 (요일별)</h3><div id="defaultRulesList"></div>
+            <button type="button" onclick="addRuleRow('default')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 기본 규칙 추가</button>
+            <h3 style="font-size:0.9rem;">월정기 규칙 (주차별)</h3><div id="monthlyRulesList"></div>
+            <button type="button" onclick="addRuleRow('monthly')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 월정기 규칙 추가</button>
+            <h3 style="font-size:0.9rem;">고객요청 이벤트 (날짜별)</h3><div id="eventRulesList"></div>
+            <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 고객요청 규칙 추가</button>
+          </div>
+          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 서버에 규칙 저장</button>
         </section>
       </div>
     </main>
 
     <div class="bottom-fixed-bar">
-      <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 전송</button>
+      <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 서버 전송</button>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <p id="loadingTitle" style="margin-top:15px; font-weight:bold; font-size: 1.1rem;">데이터 처리 중...</p>
+      <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
+      <p id="progressStatus" style="margin-top: 10px; font-size: 0.85rem; color: #a5b4fc;">준비 중...</p>
     </div>
 
     <script>
+      const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgkKi6qzWkd4ZBM1xECxtgdO80ynvIaUb5C3YoQQ6z7Ae_qN6hb1WnYXBircD5QThJDw/exec";
+      let globalRules = JSON.parse(localStorage.getItem('4d_rules_cache')) || { defaultRules: [], monthlyRules: [], eventRules: [] };
+      let extraPhotoCount = 0;
       let isExpanded = false;
-
-      // 1. 날짜 가용성 판정 로직 (오늘 기준 전후 14일)
-      const isAvailableDate = (date) => {
-        if (!date) return false;
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const target = new Date(date);
-        target.setHours(0,0,0,0);
-        const diff = Math.abs(target - today) / (1000 * 60 * 60 * 24);
-        return diff <= 14; 
-      };
 
       window.onload = async () => {
         initTimeOptions();
         initSelects();
-        
-        // [중요] Flatpickr 설정 - 클래스 주입 방식 강화
-        flatpickr("#workDate", { 
-          locale: "ko", 
-          defaultDate: "today",
-          disableMobile: "true", // 모바일 기본 UI 대신 커스텀 UI 강제 사용 (스타일 적용을 위해)
-          onDayCreate: (dObj, dStr, fp, dayElem) => {
-            // 날짜 생성 시점에 가용성 체크 후 클래스 추가
-            if (isAvailableDate(dayElem.dateObj)) {
-              dayElem.classList.add("available-day"); 
-            }
-          },
-          onChange: (selectedDates, dateStr) => { 
-            updateChecklist(); 
-            fetchWeather(dateStr); 
-          } 
-        });
-
+        flatpickr("#workDate", { locale: "ko", defaultDate: "today", onChange: (selectedDates, dateStr) => { updateChecklist(); fetchWeather(dateStr); } });
+        renderSettingsUI();
         updateChecklist();
         fetchWeather(new Date().toISOString().split('T')[0]);
+        document.getElementById('startHour').value = "06";
+        document.getElementById('startMin').value = "00";
+        syncEndTime();
+        const savedTheme = localStorage.getItem('4d_theme') || 'dark';
+        if (savedTheme === 'light') { document.body.classList.remove('dark-mode'); document.getElementById('themeToggleBtn').innerText = '🌙'; }
       };
 
-      // 2. 날씨 데이터 동기화
+      document.getElementById('themeToggleBtn').onclick = function() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        this.innerText = isDark ? '☀️' : '🌙';
+        localStorage.setItem('4d_theme', isDark ? 'dark' : 'light');
+      };
+
       async function fetchWeather(targetDate) {
         const weatherText = document.getElementById('weatherInfoText');
-        weatherText.innerText = `📍 ${targetDate} 조회 중...`;
-        
+        weatherText.innerText = `📍 ${targetDate} 기상 조회 중...`;
+        if (!navigator.geolocation) { weatherText.innerText = "📍 위치 사용 불가"; return; }
         navigator.geolocation.getCurrentPosition(async (pos) => {
           try {
             const { latitude, longitude } = pos.coords;
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,weather_code&timezone=Asia/Seoul`);
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&current=temperature_2m,relative_humidity_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia/Seoul`);
             const d = await res.json();
-            
-            const temp = d.hourly.temperature_2m[12];
-            const code = d.hourly.weather_code[12];
-            const conditionMap = { 0:'맑음', 1:'맑음', 2:'흐림', 3:'흐림', 61:'비', 63:'비', 71:'눈' };
-            
-            weatherText.innerText = `기상: ${conditionMap[code] || '보통'} (${temp}°C)`;
-            weatherText.style.background = (code >= 61) ? '#ef4444' : 'var(--primary)';
-          } catch (e) { 
-            weatherText.innerText = "📍 기상 정보 없음"; 
-          }
-        }, () => { 
-            weatherText.innerText = "📍 위치 권한 필요"; 
-        });
+            const temp = d.current ? d.current.temperature_2m : (d.hourly ? d.hourly.temperature_2m[12] : '??');
+            const hum = d.current ? d.current.relative_humidity_2m : '??';
+            const code = d.current ? d.current.weather_code : (d.hourly ? d.hourly.weather_code[12] : 0);
+            const c = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비', 71:'눈', 95:'뇌우' };
+            const label = targetDate === new Date().toISOString().split('T')[0] ? '오늘' : targetDate;
+            weatherText.innerText = `기상(${label}): ${c[code] || '흐림'} (${temp}°C, 습도 ${hum}%)`;
+          } catch (e) { weatherText.innerText = "📍 날씨 소환 실패"; }
+        }, () => { weatherText.innerText = "📍 위치 권한 필요"; });
       }
-
-      // 나머지 유틸리티 함수들
-      document.getElementById('themeToggleBtn').onclick = () => {
-        const isDark = document.body.classList.toggle('dark-mode');
-        document.getElementById('themeToggleBtn').innerText = isDark ? '☀️' : '🌙';
-      };
 
       function initTimeOptions() {
         const startH = document.getElementById('startHour'), endH = document.getElementById('endHour');
         const range = isExpanded ? {start: 0, end: 23} : {start: 6, end: 20};
+        const curS = startH.value, curE = endH.value;
         startH.innerHTML = ''; endH.innerHTML = '';
         for(let i=range.start; i<=range.end; i++) {
           const v = i.toString().padStart(2, '0');
           startH.innerHTML += `<option value="${v}">${v}시</option>`;
           endH.innerHTML += `<option value="${v}">${v}시</option>`;
         }
-        startH.value = "06"; syncEndTime();
+        if(curS && curS >= range.start && curS <= range.end) startH.value = curS;
+        if(curE && curE >= range.start && curE <= range.end) endH.value = curE;
       }
 
       function syncEndTime() {
         const h = parseInt(document.getElementById('startHour').value);
-        document.getElementById('endHour').value = (h + 1).toString().padStart(2, '0');
+        const m = document.getElementById('startMin').value;
+        let eh = h + 1;
+        const max = isExpanded ? 23 : 20;
+        if(eh > max) eh = max;
+        document.getElementById('endHour').value = eh.toString().padStart(2, '0');
+        document.getElementById('endMin').value = m;
       }
 
       document.getElementById('btnExpandTime').onclick = function() {
         isExpanded = !isExpanded;
         this.innerText = isExpanded ? "시간 축소" : "시간 확장";
-        initTimeOptions();
+        this.classList.toggle('active', isExpanded);
+        initTimeOptions(); syncEndTime();
       };
 
       function initSelects() {
         const ts = document.getElementById('interiorTemp'), hs = document.getElementById('interiorHumidity');
-        for(let i=15; i<=35; i++) ts.innerHTML += `<option value="${i}">${i}°C</option>`;
-        for(let i=20; i<=80; i+=10) hs.innerHTML += `<option value="${i}">${i}%</option>`;
-        ts.value = "22"; hs.value = "40";
+        ts.innerHTML = '<option value="">미선택</option>'; hs.innerHTML = '<option value="">미선택</option>';
+        for(let i=0; i<=40; i++) ts.innerHTML += `<option value="${i}">${i}°C</option>`;
+        for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}%</option>`;
       }
 
-      function updateChecklist() {
-        const list = document.getElementById('checklistItems');
-        list.innerHTML = `
-          <li class="checklist-item"><input type="checkbox"><span>바닥 건식/습식 청소</span></li>
-          <li class="checklist-item"><input type="checkbox"><span>공용부 집기 먼지 제거</span></li>
-          <li class="checklist-item"><input type="checkbox"><span>쓰레기 분리 배출</span></li>
+      document.getElementById('addFieldPhotoBtn').onclick = () => {
+        extraPhotoCount++;
+        const div = document.createElement('div');
+        div.className = 'extra-photo-row';
+        div.id = `row_extra_${extraPhotoCount}`;
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+             <span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">📸 작업 사진 #${extraPhotoCount}</span>
+             <button type="button" onclick="document.getElementById('row_extra_${extraPhotoCount}').remove()" style="background:none; border:none; color:var(--danger); font-size:0.75rem;">삭제</button>
+          </div>
+          <input type="text" id="desc_extra_${extraPhotoCount}" placeholder="사진 설명 입력" oninput="togglePhotoBtn(${extraPhotoCount})">
+          <label id="label_file_extra_${extraPhotoCount}" class="photo-btn-label disabled">
+            사진촬영
+            <input type="file" id="file_extra_${extraPhotoCount}" accept="image/*" capture="environment" style="display:none;" disabled>
+          </label>
         `;
+        document.getElementById('fieldPhotos').appendChild(div);
+      };
+
+      function togglePhotoBtn(id) {
+        const input = document.getElementById(`desc_extra_${id}`);
+        const label = document.getElementById(`label_file_extra_${id}`);
+        const file = document.getElementById(`file_extra_${id}`);
+        const ok = input.value.trim().length > 0;
+        label.classList.toggle('disabled', !ok);
+        file.disabled = !ok;
       }
 
       function switchTab(t) {
@@ -264,6 +275,127 @@
         document.getElementById(t + '-tab').style.display = 'block';
         document.querySelector(`[data-tab="${t}"]`).classList.add('active');
       }
+
+      function updateChecklist() {
+        const list = document.getElementById('checklistItems');
+        list.innerHTML = '';
+        const b = document.getElementById('buildingSelect').value, dt = document.getElementById('workDate').value;
+        const d = new Date(dt), day = ["일","월","화","수","목","금","토"][d.getDay()];
+        const weekNum = Math.ceil((d.getDate() + new Date(d.getFullYear(), d.getMonth(), 1).getDay()) / 7);
+        const weekStr = ["","첫째","둘째","셋째","넷째","다섯째"][weekNum];
+        let tasks = "";
+        const ev = globalRules.eventRules.find(r => r.building === b && r.date === dt);
+        const mo = globalRules.monthlyRules.find(r => r.building === b && r.weekOrder === weekStr && r.weekday === day);
+        const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
+        if(ev) tasks = ev.tasks; else if(mo) tasks = mo.tasks; else if(de) tasks = de.tasks;
+        if(tasks) { tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false)); }
+        else { list.innerHTML = `<li style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`; }
+      }
+
+      function addChecklistItem(text, isDel, isChk) {
+        const li = document.createElement('li');
+        li.className = "checklist-item";
+        li.innerHTML = `<input type="checkbox" ${isChk ? 'checked' : ''}><span>${text}</span>${isDel ? `<button type="button" class="btn-del-item" onclick="this.parentElement.remove()">삭제</button>` : ''}`;
+        document.getElementById('checklistItems').appendChild(li);
+      }
+
+      document.getElementById('addCustomItemBtn').onclick = () => {
+        const i = document.getElementById('customItemInput');
+        if(i.value.trim()) { addChecklistItem("[현장추가] " + i.value.trim(), true, true); i.value = ''; }
+      };
+
+      function renderSettingsUI() {
+        const renderList = (id, type, arr) => {
+          const l = document.getElementById(id); l.innerHTML = '';
+          arr.forEach(d => addRuleRow(type, d));
+        };
+        renderList('defaultRulesList', 'default', globalRules.defaultRules);
+        renderList('monthlyRulesList', 'monthly', globalRules.monthlyRules);
+        renderList('eventRulesList', 'event', globalRules.eventRules);
+      }
+
+      function addRuleRow(type, data = {}) {
+        const div = document.createElement('div');
+        div.className = 'rule-row';
+        div.innerHTML = `<div class="rule-header"><button type="button" class="delete-rule" onclick="this.parentElement.parentElement.remove()">삭제</button></div>
+                    <select class="rule-building"><option value="백산빌딩" ${data.building==='백산빌딩'?'selected':''}>백산빌딩</option><option value="효성빌딩" ${data.building==='효성빌딩'?'selected':''}>효성빌딩</option></select>`;
+        if(type === 'default') { div.innerHTML += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`; }
+        else if(type === 'monthly') {
+          div.innerHTML += `<select class="rule-weekorder">${['첫째','둘째','셋째','넷째','다섯째'].map(w=>`<option value="${w}" ${data.weekOrder===w?'selected':''}>${w} 주</option>`).join('')}</select>`;
+          div.innerHTML += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
+        } else if(type === 'event') { div.innerHTML += `<input type="text" class="rule-date" value="${data.date || ''}" readonly>`; }
+        div.innerHTML += `<textarea class="rule-tasks" placeholder="항목 입력">${data.tasks || ''}</textarea>`;
+        document.getElementById(`${type}RulesList`).appendChild(div);
+        if (type === 'event') { flatpickr(div.querySelector('.rule-date'), { locale: "ko", dateFormat: "Y-m-d" }); }
+      }
+
+      document.getElementById('saveWorkBtn').onclick = async () => {
+        const overlay = document.getElementById('loadingOverlay'), pBar = document.getElementById('progressBar'), pStat = document.getElementById('progressStatus'), lTitle = document.getElementById('loadingTitle');
+        const checklistItems = Array.from(document.querySelectorAll('#checklistItems li')).map(li => {
+          const span = li.querySelector('span');
+          const input = li.querySelector('input');
+          if (span && input) {
+            return { item: span.innerText, checked: input.checked ? "O" : "X" };
+          }
+          return null;
+        }).filter(item => item !== null);
+        if (checklistItems.length === 0) {
+          alert("⚠️ 청소내역을 추가해 주세요.\n(등록된 규칙이 없으면 '현장 추가 항목'에 내용을 적고 추가 버튼을 눌러주세요)");
+          return;
+        }
+        overlay.style.display = 'flex'; pBar.style.width = '5%'; pStat.innerText = "데이터 취합 중...";
+        const toB64 = f => new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result.split(',')[1]); rd.readAsDataURL(f); });
+        const sleep = ms => new Promise(res => setTimeout(res, ms));
+        try {
+          const stH = document.getElementById('startHour').value, stM = document.getElementById('startMin').value;
+          const etH = document.getElementById('endHour').value, etM = document.getElementById('endMin').value;
+          const startT = `${stH}:${stM}`, endT = `${etH}:${etM}`;
+          let diffMin = (parseInt(etH) * 60 + parseInt(etM)) - (parseInt(stH) * 60 + parseInt(stM));
+          if (diffMin < 0) diffMin += 24 * 60;
+          const h = Math.floor(diffMin / 60), m = diffMin % 60;
+          const duration = m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
+          const payload = {
+            workDate: document.getElementById('workDate').value,
+            startTime: startT, endTime: endT, workDuration: duration,
+            building: document.getElementById('buildingSelect').value,
+            worker: document.getElementById('workerName').value,
+            weather: document.getElementById('weatherInfoText').innerText,
+            interiorTemp: document.getElementById('interiorTemp').value,
+            interiorHumid: document.getElementById('interiorHumidity').value,
+            customerReq: document.getElementById('customerRequest').value,
+            workMemo: document.getElementById('workMemo').value,
+            yearMonthFolder: document.getElementById('workDate').value.substring(0,7).replace('-',''),
+            checklist: checklistItems,
+            photos: []
+          };
+          const thF = document.getElementById('photoThermometer').files[0];
+          const exPRs = Array.from(document.querySelectorAll('.extra-photo-row')).filter(r => r.querySelector('input[type="file"]').files[0]);
+          const totF = (thF ? 1 : 0) + exPRs.length;
+          let doneF = 0;
+          if(thF) { doneF++; pBar.style.width = Math.floor((doneF / (totF + 1)) * 90) + '%'; pStat.innerText = `[${doneF}/${totF}] 온습도계 사진 변환 중...`; await sleep(500); payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await toB64(thF) }); }
+          for(let r of exPRs) { doneF++; const d = r.querySelector('input[type="text"]').value.trim() || "작업사진"; pBar.style.width = Math.floor((doneF / (totF + 1)) * 90) + '%'; pStat.innerText = `[${doneF}/${totF}] ${d} 변환 중...`; await sleep(500); payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${d.replace(/\s+/g,'_')}.JPG`, data: await toB64(r.querySelector('input[type="file"]').files[0]) }); }
+          pBar.style.width = '95%'; lTitle.innerText = "서버 전송 중..."; pStat.innerText = "구글 시트에 일지를 기록하고 있습니다.";
+          await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
+          pBar.style.width = '100%'; pStat.innerText = "전송 완료!"; await sleep(500); alert("✅ 일지 전송 성공!"); location.reload();
+        } catch (e) { alert("❌ 에러: " + e.message); overlay.style.display = 'none'; }
+      };
+
+      document.getElementById('saveRulesToServerBtn').onclick = async () => {
+        const collect = (id, type) => Array.from(document.getElementById(id).children).map(r => {
+          const d = { building: r.querySelector('.rule-building').value, tasks: r.querySelector('.rule-tasks').value };
+          if(type === 'default') d.weekday = r.querySelector('.rule-weekday').value;
+          if(type === 'monthly') { d.weekOrder = r.querySelector('.rule-weekorder').value; d.weekday = r.querySelector('.rule-weekday').value; }
+          if(type === 'event') d.date = r.querySelector('.rule-date').value;
+          return d;
+        });
+        globalRules.defaultRules = collect('defaultRulesList', 'default');
+        globalRules.monthlyRules = collect('monthlyRulesList', 'monthly');
+        globalRules.eventRules = collect('eventRulesList', 'event');
+        localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules));
+        const overlay = document.getElementById('loadingOverlay'); overlay.style.display = 'flex';
+        try { await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({action:"SAVE_RULES", rules: globalRules}) }); alert("✅ 규칙 저장 완료!"); updateChecklist(); } catch (e) { alert("저장 실패"); }
+        finally { overlay.style.display = 'none'; }
+      };
     </script>
   </body>
 </html>
