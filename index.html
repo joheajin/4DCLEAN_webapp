@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
     <style>
-      :root { --primary: #6366f1; --primary-dark: #4f46e5; --bg-main: #111827; }
+      :root { --primary: #6366f1; --primary-dark: #4f46e5; --bg-main: #111827; --danger: #ef4444; }
       body { font-family: sans-serif; background: var(--bg-main); margin: 0; padding: 10px; padding-bottom: 80px; color: #f3f4f6; transition: background 0.3s; }
       .container { max-width: 600px; margin: 0 auto; background: #1f2937; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
       .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
@@ -24,12 +24,69 @@
       .spinner { width: 45px; height: 45px; border: 4px solid #374151; border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
       
-      .rule-row { background: #111827; padding: 15px; border-radius: 10px; border: 1px solid #374151; margin-bottom: 15px; position: relative; }
-      .rule-row .delete-rule { position: absolute; top: 10px; right: 10px; color: #ef4444; font-weight: bold; background: none; border: none; cursor: pointer; }
-      .rule-row select, .rule-row input, .rule-row textarea { margin-bottom: 8px; }
+      .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #374151;
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #4b5563;
+      }
+      .checklist-item input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        margin: 0;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .checklist-item span {
+        flex: 1;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+      .btn-del-item {
+        background: none;
+        border: 1px solid var(--danger);
+        color: var(--danger);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
 
-      /* 추가 버튼 가로 배치 보강 */
+      .rule-row { 
+        background: #111827; 
+        padding: 15px; 
+        border-radius: 10px; 
+        border: 1px solid #374151; 
+        margin-bottom: 15px; 
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+      }
+      .rule-header {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 2px;
+      }
+      .delete-rule { 
+        color: var(--danger); 
+        font-weight: bold; 
+        background: rgba(239, 68, 68, 0.1); 
+        border: 1px solid var(--danger); 
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer; 
+      }
+      
       #addCustomItemBtn { white-space: nowrap; min-width: 60px; }
+      .weather-badge { font-size:0.85rem; color:#a5b4fc; margin-bottom:15px; background:#312e81; padding:8px 12px; border-radius:6px; display:inline-block; font-weight:bold; }
     </style>
   </head>
   <body class="dark-mode">
@@ -48,7 +105,7 @@
       <div id="main-tab" class="tab-content active">
         <section class="card">
           <h2>1) 작업 기본 정보</h2>
-          <div id="weatherInfoText" style="font-size:0.85rem; color:#a5b4fc; margin-bottom:15px; background:#312e81; padding:8px; border-radius:6px; display:inline-block;">📍 날씨 수신 중...</div>
+          <div id="weatherInfoText" class="weather-badge">📍 날씨 수신 중...</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
             <label>작업 날짜 <input id="workDate" type="date"></label>
             <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
@@ -58,7 +115,7 @@
 
         <section class="card">
           <h2 style="border-bottom:none; margin-bottom:4px;">2) 오늘의 청소 체크리스트</h2>
-          <div style="font-size: 12px; color: #9ca3af; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #374151;">우선순위: 특별 이벤트 → 월정기 → 기본</div>
+          <div style="font-size: 12px; color: #9ca3af; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 1px solid #374151;">우선순위: 고객요청 이벤트 → 월정기 → 기본</div>
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
           <div style="display:flex; gap:8px; margin-top:15px;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목 입력" style="margin:0;">
@@ -95,9 +152,9 @@
             <div id="monthlyRulesList"></div>
             <button type="button" onclick="addRuleRow('monthly')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:20px;">+ 월정기 규칙 추가</button>
 
-            <h3>특별 이벤트 (날짜별)</h3>
+            <h3>고객요청 이벤트 (날짜별)</h3>
             <div id="eventRulesList"></div>
-            <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:20px;">+ 이벤트 규칙 추가</button>
+            <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:20px;">+ 고객요청 규칙 추가</button>
           </div>
 
           <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold; font-size:1.1rem;">🌐 서버에 규칙 저장 및 동기화</button>
@@ -205,8 +262,8 @@
       function addRuleRow(type, data = {}) {
         const div = document.createElement('div');
         div.className = 'rule-row';
-        let html = `<button class="delete-rule" onclick="this.parentElement.remove()">삭제</button>
-                    <select class="rule-building"><option value="백산빌딩" ${data.building==='백산빌딩'?'selected':''}>백산</option><option value="효성빌딩" ${data.building==='효성빌딩'?'selected':''}>효성</option></select>`;
+        let html = `<div class="rule-header"><button type="button" class="delete-rule" onclick="this.parentElement.parentElement.remove()">삭제</button></div>
+                    <select class="rule-building"><option value="백산빌딩" ${data.building==='백산빌딩'?'selected':''}>백산빌딩</option><option value="효성빌딩" ${data.building==='효성빌딩'?'selected':''}>효성빌딩</option></select>`;
         
         if(type === 'default') {
           html += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
@@ -214,12 +271,23 @@
           html += `<select class="rule-weekorder">${['첫째','둘째','셋째','넷째','다섯째'].map(w=>`<option value="${w}" ${data.weekOrder===w?'selected':''}>${w} 주</option>`).join('')}</select>`;
           html += `<select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
         } else if(type === 'event') {
-          html += `<input type="date" class="rule-date" value="${data.date || ''}">`;
+          html += `<input type="text" class="rule-date" placeholder="날짜 선택" value="${data.date || ''}" readonly>`;
         }
         
         html += `<textarea class="rule-tasks" placeholder="청소 항목 (엔터로 구분)">${data.tasks || ''}</textarea>`;
         div.innerHTML = html;
-        document.getElementById(`${type}RulesList`).appendChild(div);
+        
+        const list = document.getElementById(`${type}RulesList`);
+        list.appendChild(div);
+
+        if (type === 'event') {
+          const dateInput = div.querySelector('.rule-date');
+          flatpickr(dateInput, {
+            locale: "ko",
+            dateFormat: "Y-m-d",
+            defaultDate: data.date || "today"
+          });
+        }
       }
 
       function updateChecklist() {
@@ -250,7 +318,11 @@
       function addChecklistItem(text, isDeletable, isChecked) {
         const li = document.createElement('li');
         li.className = "checklist-item";
-        li.innerHTML = `<input type="checkbox" ${isChecked?'checked':''}><span>${text}</span>`;
+        li.innerHTML = `
+          <input type="checkbox" ${isChecked ? 'checked' : ''}>
+          <span>${text}</span>
+          ${isDeletable ? `<button type="button" class="btn-del-item" onclick="this.parentElement.remove()">삭제</button>` : ''}
+        `;
         document.getElementById('checklistItems').appendChild(li);
       }
 
@@ -282,7 +354,6 @@
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia/Seoul`);
             const data = await res.json();
             const codes = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비' };
-            // 성도님 요청 사항: "도" 대신 "°C" 기호 사용
             document.getElementById('weatherInfoText').innerText = `날씨정보 : ${codes[data.current.weather_code] || '정보없음'} (${data.current.temperature_2m}°C, 습도 ${data.current.relative_humidity_2m}%)`;
           } catch (e) { document.getElementById('weatherInfoText').innerText = "날씨 연동 실패"; }
         }, null, {enableHighAccuracy:true, timeout:10000});
