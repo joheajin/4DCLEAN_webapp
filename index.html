@@ -20,9 +20,14 @@
       input, select, textarea { width: 100%; padding: 10px; border: 1px solid #4b5563; border-radius: 6px; background: #374151; color: white; margin-top: 4px; box-sizing: border-box; }
       .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: #1f2937; border-top: 1px solid #374151; display: flex; justify-content: center; z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); }
       .save-work-btn-large { width: 100%; max-width: 600px; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.15rem; cursor: pointer; }
-      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(4px); }
+      
+      /* 로딩 및 게이지 스타일 */
+      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
+      .progress-container { width: 80%; max-width: 300px; background: #374151; height: 10px; border-radius: 5px; margin-top: 20px; overflow: hidden; }
+      .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
       .spinner { width: 45px; height: 45px; border: 4px solid #374151; border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
+      
       .checklist-item { display: flex; align-items: center; gap: 12px; background: #374151; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #4b5563; }
       .checklist-item input[type="checkbox"] { width: 24px; height: 24px; margin: 0; cursor: pointer; flex-shrink: 0; }
       .checklist-item span { flex: 1; font-weight: 600; font-size: 0.95rem; }
@@ -131,9 +136,14 @@
       <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 서버 전송</button>
     </div>
 
+    <!-- 로딩 게이지 오버레이 -->
     <div id="loadingOverlay" class="loading-overlay">
       <div class="spinner"></div>
-      <p id="loadingText" style="margin-top:20px; font-weight:bold; text-align:center;">데이터 처리 중...</p>
+      <p id="loadingText" style="margin-top:20px; font-weight:bold; text-align:center; font-size: 1.1rem; color: #fff;">데이터 분석 중...</p>
+      <div class="progress-container">
+        <div id="progressBar" class="progress-bar"></div>
+      </div>
+      <p id="progressStatus" style="margin-top: 10px; font-size: 0.85rem; color: #9ca3af;">준비 중...</p>
     </div>
 
     <script>
@@ -163,7 +173,6 @@
         const div = document.createElement('div');
         div.className = 'extra-photo-row';
         div.id = `row_extra_${extraPhotoCount}`;
-        
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:center;">
              <span style="font-size:0.8rem; color:var(--primary); font-weight:bold;">📸 작업 사진 증빙 #${extraPhotoCount}</span>
@@ -184,7 +193,6 @@
         const descInput = document.getElementById(`desc_extra_${id}`);
         const fileLabel = document.getElementById(`label_file_extra_${id}`);
         const fileInput = document.getElementById(`file_extra_${id}`);
-        
         if (descInput.value.trim().length > 0) {
           fileLabel.classList.remove('disabled');
           fileInput.disabled = false;
@@ -299,10 +307,18 @@
         finally { loadingOverlay.style.display = 'none'; }
       };
 
+      // [프로그레스 강화] 작업 전송 로직
       document.getElementById('saveWorkBtn').onclick = async () => {
         const loadingOverlay = document.getElementById('loadingOverlay');
+        const progressBar = document.getElementById('progressBar');
+        const progressStatus = document.getElementById('progressStatus');
+        const loadingText = document.getElementById('loadingText');
+        
         loadingOverlay.style.display = 'flex';
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("시간 초과")), 60000));
+        progressBar.style.width = '0%';
+        progressStatus.innerText = "데이터 수집 중...";
+
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("시간 초과")), 90000));
         const toB64 = f => new Promise(r => { const reader = new FileReader(); reader.onload = () => r(reader.result.split(',')[1]); reader.readAsDataURL(f); });
         
         try {
@@ -321,27 +337,57 @@
             photos: []
           };
 
+          // 전송할 파일 선별
           const thFile = document.getElementById('photoThermometer').files[0];
-          if(thFile) payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await toB64(thFile) });
+          const extraPhotoRows = Array.from(document.querySelectorAll('.extra-photo-row')).filter(row => row.querySelector('input[type="file"]').files[0]);
+          const totalFiles = (thFile ? 1 : 0) + extraPhotoRows.length;
+          let processedFiles = 0;
 
-          const photoRows = document.querySelectorAll('.extra-photo-row');
-          for(let row of photoRows) {
-            const input = row.querySelector('input[type="file"]');
-            const descInput = row.querySelector('input[type="text"]');
-            const desc = descInput.value.trim();
-            if(input.files[0] && desc.length > 0) {
-              payload.photos.push({ 
-                fileName: `${payload.workDate.replace(/-/g,'')}_${desc.replace(/\s+/g,'_')}.JPG`, 
-                data: await toB64(input.files[0]) 
-              });
-            }
+          // 파일 변환 및 게이지 업데이트 함수
+          const updateGauge = (idx, name) => {
+            const percent = ((idx / (totalFiles + 1)) * 100).toFixed(0);
+            progressBar.style.width = percent + '%';
+            progressStatus.innerText = `[${idx}/${totalFiles}] ${name} 변환 중...`;
+          };
+
+          // 1. 온습도계 사진 처리
+          if(thFile) {
+            updateGauge(++processedFiles, "온습도계 사진");
+            payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await toB64(thFile) });
           }
 
-          await Promise.race([ fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) }), timeoutPromise ]);
-          alert("✅ 전송 성공! 일지가 기록되었습니다.");
+          // 2. 추가 작업 사진들 처리
+          for(let row of extraPhotoRows) {
+            const input = row.querySelector('input[type="file"]');
+            const desc = row.querySelector('input[type="text"]').value.trim() || "작업사진";
+            updateGauge(++processedFiles, desc);
+            payload.photos.push({ 
+              fileName: `${payload.workDate.replace(/-/g,'')}_${desc.replace(/\s+/g,'_')}.JPG`, 
+              data: await toB64(input.files[0]) 
+            });
+          }
+
+          // 3. 최종 전송 단계
+          progressBar.style.width = '95%';
+          progressStatus.innerText = "서버로 최종 일지 전송 중...";
+          loadingText.innerText = "네트워크 연결 중...";
+
+          await Promise.race([ 
+            fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) }), 
+            timeoutPromise 
+          ]);
+
+          progressBar.style.width = '100%';
+          progressStatus.innerText = "전송 완료!";
+          alert("✅ 일지 전송 성공! 수고하셨습니다.");
           location.reload();
-        } catch (e) { console.error(e); alert(e.message === "시간 초과" ? "⚠️ 전송 지연 중. 시트에서 기록을 확인하세요." : "❌ 에러: " + e.message); }
-        finally { loadingOverlay.style.display = 'none'; }
+
+        } catch (e) {
+          console.error(e);
+          alert(e.message === "시간 초과" ? "⚠️ 전송 지연 중. 시트에서 기록을 확인하세요." : "❌ 에러: " + e.message);
+        } finally {
+          loadingOverlay.style.display = 'none';
+        }
       };
     </script>
   </body>
