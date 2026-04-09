@@ -8,61 +8,295 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ko.js"></script>
     <style>
-      :root { --primary: #6366f1; --primary-dark: #4f46e5; --bg-main: #111827; --danger: #ef4444; }
-      body { font-family: sans-serif; background: var(--bg-main); margin: 0; padding: 10px; padding-bottom: 80px; color: #f3f4f6; transition: background 0.3s; }
-      .container { max-width: 600px; margin: 0 auto; background: #1f2937; padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-      .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #374151; padding-bottom: 10px; }
-      .tab-btn { flex: 1; padding: 12px; border: none; background: #374151; color: #9ca3af; border-radius: 8px; cursor: pointer; font-weight: bold; }
-      .tab-btn.active { background: var(--primary); color: white; }
-      .card { border: 1px solid #374151; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #1f2937; }
-      .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid #374151; padding-bottom: 8px; margin-bottom: 12px; }
-      label { display: block; font-size: 0.8rem; font-weight: bold; color: #e5e7eb; margin-bottom: 4px; }
+      /* 테마 변수 설정 */
+      :root {
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --danger: #ef4444;
+        /* 라이트 모드 기본값 */
+        --bg-main: #f8fafc;
+        --bg-container: #ffffff;
+        --bg-card: #f1f5f9;
+        --text-main: #1e293b;
+        --text-muted: #64748b;
+        --border-color: #e2e8f0;
+        --input-bg: #ffffff;
+      }
+
+      body.dark-mode {
+        --bg-main: #0f172a;
+        --bg-container: #1e293b;
+        --bg-card: #334155;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border-color: #475569;
+        --input-bg: #1e293b;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: var(--bg-main);
+        margin: 0;
+        padding: 10px;
+        padding-bottom: 80px;
+        color: var(--text-main);
+        transition: all 0.3s ease;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        background: var(--bg-container);
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      }
+
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        background: var(--bg-card);
+        color: var(--text-muted);
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .tab-btn.active {
+        background: var(--primary);
+        color: white;
+      }
+
+      .card {
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        background: var(--bg-container);
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 1.1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+
+      label {
+        display: block;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
       
-      input, select, textarea { 
-        width: 100%; 
-        padding: 10px 8px; 
-        border: 1px solid #4b5563; 
-        border-radius: 6px; 
-        background: #374151; 
-        color: white; 
-        margin-top: 4px; 
+      input, select, textarea {
+        width: 100%;
+        padding: 10px 8px;
+        border: 1px solid var(--border-color);
+        border-radius: 6px;
+        background: var(--input-bg);
+        color: var(--text-main);
+        margin-top: 4px;
         box-sizing: border-box;
         font-size: 0.95rem;
       }
-      
-      .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-      .time-box { background: #111827; padding: 10px 8px; border-radius: 8px; border: 1px solid #374151; }
-      .time-box label { font-size: 0.75rem; color: #9ca3af; }
-      .time-box div { display: flex; gap: 4px; margin-top: 5px; }
-      .time-box select { flex: 1; padding: 8px 4px; font-size: 0.85rem; min-width: 0; text-align: center; }
 
-      .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: #1f2937; border-top: 1px solid #374151; display: flex; justify-content: center; z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.3); }
-      .save-work-btn-large { width: 100%; max-width: 600px; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
-      
-      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
-      .progress-container { width: 80%; max-width: 300px; background: #374151; height: 10px; border-radius: 5px; margin-top: 20px; overflow: hidden; }
-      .progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
-      .spinner { width: 40px; height: 40px; border: 4px solid #374151; border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite; }
+      .time-select-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .time-box {
+        background: var(--bg-card);
+        padding: 10px 8px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+      }
+
+      .time-box select {
+        flex: 1;
+        padding: 8px 4px;
+        font-size: 0.85rem;
+        min-width: 0;
+        text-align: center;
+      }
+
+      .bottom-fixed-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 15px 20px;
+        background: var(--bg-container);
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: center;
+        z-index: 100;
+      }
+
+      .save-work-btn-large {
+        width: 100%;
+        max-width: 600px;
+        padding: 16px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: bold;
+        font-size: 1.1rem;
+        cursor: pointer;
+      }
+
+      .loading-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.85);
+        z-index: 9999;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        backdrop-filter: blur(5px);
+      }
+
+      .progress-container {
+        width: 80%;
+        max-width: 300px;
+        background: #475569;
+        height: 10px;
+        border-radius: 5px;
+        margin-top: 20px;
+        overflow: hidden;
+      }
+
+      .progress-bar {
+        width: 0%;
+        height: 100%;
+        background: var(--primary);
+        transition: width 0.3s ease;
+      }
+
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #475569;
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
       @keyframes spin { to { transform: rotate(360deg); } }
-      
-      .checklist-item { display: flex; align-items: center; gap: 10px; background: #374151; padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid #4b5563; }
-      .checklist-item input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; }
-      .checklist-item span { flex: 1; font-size: 0.9rem; }
-      .btn-del-item { color: var(--danger); background: none; border: 1px solid var(--danger); padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; }
-      
-      .btn-expand { background: #4b5563; color: #fff; border: none; padding: 6px; border-radius: 5px; font-size: 0.75rem; width: 100%; margin-top: 8px; cursor: pointer; }
-      .btn-expand.active { background: var(--primary); }
-      .weather-badge { font-size:0.8rem; color:#a5b4fc; margin-bottom:12px; background:#312e81; padding:6px 10px; border-radius:6px; display:inline-block; }
-      .extra-photo-row { background: #111827; padding: 12px; border-radius: 10px; border: 1px dashed #4b5563; margin-bottom: 10px; }
-      .photo-btn-label { display: block; width: 100%; padding: 10px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-      .photo-btn-label.disabled { background: #4b5563; opacity: 0.5; cursor: not-allowed; }
+
+      .checklist-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-card);
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        border: 1px solid var(--border-color);
+      }
+
+      .checklist-item input[type="checkbox"] {
+        width: 22px;
+        height: 22px;
+        flex-shrink: 0;
+      }
+
+      .checklist-item span {
+        flex: 1;
+        font-size: 0.9rem;
+      }
+
+      .btn-del-item {
+        color: var(--danger);
+        background: none;
+        border: 1px solid var(--danger);
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 0.7rem;
+      }
+
+      .btn-expand {
+        background: var(--bg-card);
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+        padding: 8px;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        width: 100%;
+        margin-top: 8px;
+        cursor: pointer;
+      }
+
+      .btn-expand.active {
+        background: var(--primary);
+        color: white;
+      }
+
+      .weather-badge {
+        font-size: 0.8rem;
+        color: #fff;
+        margin-bottom: 12px;
+        background: var(--primary);
+        padding: 6px 12px;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: bold;
+      }
+
+      .extra-photo-row {
+        background: var(--bg-card);
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px dashed var(--border-color);
+        margin-bottom: 10px;
+      }
+
+      .photo-btn-label {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: var(--primary);
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 8px;
+      }
+
+      .photo-btn-label.disabled {
+        background: var(--text-muted);
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body class="dark-mode">
     <main class="container">
       <div class="app-header">
         <h1 style="font-size: 1.3rem; margin:0;">4D클린 현장 일지</h1>
-        <button id="themeToggleBtn" type="button" style="background:none; border:none; font-size: 1.2rem;">☀️</button>
+        <button id="themeToggleBtn" type="button" style="background:none; border:none; font-size: 1.5rem; cursor:pointer;">☀️</button>
       </div>
 
       <div class="tabs" style="display:flex; gap:8px; margin-bottom:15px;">
@@ -73,7 +307,7 @@
       <div id="main-tab" class="tab-content active">
         <section class="card">
           <h2>1) 작업 기본 정보</h2>
-          <div id="weatherInfoText" class="weather-badge">📍 날씨 수신 중...</div>
+          <div id="weatherInfoText" class="weather-badge">📍 날씨 데이터 연동 중...</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
             <label>작업 날짜 <input id="workDate" type="date"></label>
             <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
@@ -83,14 +317,14 @@
           <div class="time-select-grid">
             <div class="time-box">
               <label>시작 시간</label>
-              <div>
+              <div style="display:flex; gap:4px; margin-top:5px;">
                 <select id="startHour" onchange="syncEndTime()"></select>
                 <select id="startMin" onchange="syncEndTime()"><option value="00">00분</option><option value="30">30분</option></select>
               </div>
             </div>
             <div class="time-box">
               <label>종료 시간</label>
-              <div>
+              <div style="display:flex; gap:4px; margin-top:5px;">
                 <select id="endHour"></select>
                 <select id="endMin"><option value="00">00분</option><option value="30">30분</option></select>
               </div>
@@ -101,9 +335,8 @@
 
         <section class="card">
           <h2 style="border-bottom:none; margin-bottom:4px;">2) 오늘의 청소 체크리스트</h2>
-          <div style="font-size: 11px; color: #9ca3af; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #374151;">우선순위: 고객요청 이벤트 → 월정기 → 기본</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">우선순위: 고객요청 이벤트 → 월정기 → 기본</div>
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
-          <!-- [UI 개선] 추가 버튼 가로 배치 및 글자 잘림 방지 -->
           <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
             <button id="addCustomItemBtn" type="button" style="background:var(--primary); color:white; border:none; padding:0 15px; height: 42px; border-radius:6px; font-weight:bold; white-space: nowrap; flex-shrink: 0;">추가</button>
@@ -134,12 +367,12 @@
         <section class="card">
           <h2 style="color:var(--primary);">규칙 관리 및 서버 동기화</h2>
           <div id="rulesAdminContainer">
-            <h3>기본 규칙 (요일별)</h3><div id="defaultRulesList"></div>
-            <button type="button" onclick="addRuleRow('default')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:15px;">+ 기본 규칙 추가</button>
-            <h3>월정기 규칙 (주차별)</h3><div id="monthlyRulesList"></div>
-            <button type="button" onclick="addRuleRow('monthly')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:15px;">+ 월정기 규칙 추가</button>
-            <h3>고객요청 이벤트 (날짜별)</h3><div id="eventRulesList"></div>
-            <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:#374151; color:white; border:none; border-radius:6px; margin-bottom:15px;">+ 고객요청 규칙 추가</button>
+            <h3 style="font-size:0.9rem;">기본 규칙 (요일별)</h3><div id="defaultRulesList"></div>
+            <button type="button" onclick="addRuleRow('default')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 기본 규칙 추가</button>
+            <h3 style="font-size:0.9rem;">월정기 규칙 (주차별)</h3><div id="monthlyRulesList"></div>
+            <button type="button" onclick="addRuleRow('monthly')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 월정기 규칙 추가</button>
+            <h3 style="font-size:0.9rem;">고객요청 이벤트 (날짜별)</h3><div id="eventRulesList"></div>
+            <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 고객요청 규칙 추가</button>
           </div>
           <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 서버에 규칙 저장</button>
         </section>
@@ -166,14 +399,75 @@
       window.onload = async () => {
         initTimeOptions();
         initSelects();
-        flatpickr("#workDate", { locale: "ko", defaultDate: "today", onChange: updateChecklist });
+        
+        // 날짜 선택 시 날씨 재호출 로직 연결
+        flatpickr("#workDate", { 
+          locale: "ko", 
+          defaultDate: "today", 
+          onChange: (selectedDates, dateStr) => {
+            updateChecklist();
+            fetchWeather(dateStr);
+          }
+        });
+
         renderSettingsUI();
         updateChecklist();
-        fetchWeather();
+        fetchWeather(new Date().toISOString().split('T')[0]); // 초기 로드 시 오늘 날씨
+        
         document.getElementById('startHour').value = "06";
         document.getElementById('startMin').value = "00";
         syncEndTime();
+
+        // 테마 복원
+        const savedTheme = localStorage.getItem('4d_theme') || 'dark';
+        if (savedTheme === 'light') {
+          document.body.classList.remove('dark-mode');
+          document.getElementById('themeToggleBtn').innerText = '🌙';
+        }
       };
+
+      // [혁신] 테마 전환 로직 복구
+      document.getElementById('themeToggleBtn').onclick = function() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        this.innerText = isDark ? '☀️' : '🌙';
+        localStorage.setItem('4d_theme', isDark ? 'dark' : 'light');
+      };
+
+      // [혁신] 날짜 연동형 날씨 엔진
+      async function fetchWeather(targetDate) {
+        const weatherText = document.getElementById('weatherInfoText');
+        weatherText.innerText = `📍 ${targetDate} 기상 정보 조회 중...`;
+        
+        if (!navigator.geolocation) {
+          weatherText.innerText = "📍 위치 정보를 사용할 수 없습니다.";
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          try {
+            const { latitude, longitude } = pos.coords;
+            // Open-Meteo는 start_date/end_date를 통해 특정 날짜 조회가 가능함
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&current=temperature_2m,relative_humidity_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia/Seoul`;
+            
+            const res = await fetch(url);
+            const d = await res.json();
+            
+            // 데이터가 있는 경우 (과거/미래 예보 포함)
+            const temperature = d.current ? d.current.temperature_2m : (d.hourly ? d.hourly.temperature_2m[12] : '??');
+            const humidity = d.current ? d.current.relative_humidity_2m : '??';
+            const weatherCode = d.current ? d.current.weather_code : (d.hourly ? d.hourly.weather_code[12] : 0);
+            
+            const c = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비', 71:'눈', 95:'뇌우' };
+            const statusLabel = targetDate === new Date().toISOString().split('T')[0] ? '오늘' : targetDate;
+            
+            weatherText.innerText = `기상(${statusLabel}): ${c[weatherCode] || '흐림'} (${temperature}°C, 습도 ${humidity}%)`;
+          } catch (e) { 
+            weatherText.innerText = "📍 날씨 데이터를 소환할 수 없습니다."; 
+          }
+        }, () => {
+          weatherText.innerText = "📍 위치 권한이 필요합니다.";
+        });
+      }
 
       function initTimeOptions() {
         const startH = document.getElementById('startHour');
@@ -249,18 +543,6 @@
         document.querySelector(`[data-tab="${t}"]`).classList.add('active');
       }
 
-      function fetchWeather() {
-        if (!navigator.geolocation) return;
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-          try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia/Seoul`);
-            const d = await res.json();
-            const c = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비' };
-            document.getElementById('weatherInfoText').innerText = `날씨정보 : ${c[d.current.weather_code] || '정보없음'} (${d.current.temperature_2m}°C, 습도 ${d.current.relative_humidity_2m}%)`;
-          } catch (e) { document.getElementById('weatherInfoText').innerText = "날씨 연동 실패"; }
-        });
-      }
-
       function updateChecklist() {
         const list = document.getElementById('checklistItems');
         list.innerHTML = '';
@@ -276,7 +558,7 @@
         const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
         if(ev) tasks = ev.tasks; else if(mo) tasks = mo.tasks; else if(de) tasks = de.tasks;
         if(tasks) { tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false)); }
-        else { list.innerHTML = `<li style="color:gray; padding:10px; border:1px dashed #374151; border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`; }
+        else { list.innerHTML = `<li style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`; }
       }
 
       function addChecklistItem(text, isDel, isChk) {
@@ -323,24 +605,20 @@
         const sleep = ms => new Promise(res => setTimeout(res, ms));
         
         try {
-          // [데이터 개선] 시작 시간, 종료 시간, 소요 시간 계산
           const stH = document.getElementById('startHour').value;
           const stM = document.getElementById('startMin').value;
           const etH = document.getElementById('endHour').value;
           const etM = document.getElementById('endMin').value;
-          
           const startT = `${stH}:${stM}`;
           const endT = `${etH}:${etM}`;
-          
           let diffMin = (parseInt(etH) * 60 + parseInt(etM)) - (parseInt(stH) * 60 + parseInt(stM));
-          if (diffMin < 0) diffMin += 24 * 60; // 자정 넘김 처리
+          if (diffMin < 0) diffMin += 24 * 60;
           const h = Math.floor(diffMin / 60);
           const m = diffMin % 60;
           const duration = m > 0 ? `${h}시간 ${m}분` : `${h}시간`;
 
           const payload = {
             workDate: document.getElementById('workDate').value,
-            // 각각 분리하여 전송
             startTime: startT,
             endTime: endT,
             workDuration: duration,
@@ -363,8 +641,8 @@
           
           if(thF) { doneF++; pBar.style.width = Math.floor((doneF / (totF + 1)) * 90) + '%'; pStat.innerText = `[${doneF}/${totF}] 온습도계 사진 변환 중...`; await sleep(500); payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await toB64(thF) }); }
           for(let r of exPRs) { doneF++; const d = r.querySelector('input[type="text"]').value.trim() || "작업사진"; pBar.style.width = Math.floor((doneF / (totF + 1)) * 90) + '%'; pStat.innerText = `[${doneF}/${totF}] ${d} 변환 중...`; await sleep(500); payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${d.replace(/\s+/g,'_')}.JPG`, data: await toB64(r.querySelector('input[type="file"]').files[0]) }); }
-          pBar.style.width = '95%'; lTitle.innerText = "서버 전송 중..."; pStat.innerText = "구글 시트에 일지를 기록하고 있습니다.";
           
+          pBar.style.width = '95%'; lTitle.innerText = "서버 전송 중..."; pStat.innerText = "구글 시트에 일지를 기록하고 있습니다.";
           await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
           pBar.style.width = '100%'; pStat.innerText = "전송 완료!"; await sleep(500); alert("✅ 일지 전송 성공!"); location.reload();
         } catch (e) { alert("❌ 에러: " + e.message); overlay.style.display = 'none'; }
