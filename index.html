@@ -19,6 +19,7 @@
         --text-muted: #64748b;
         --border-color: #e2e8f0;
         --input-bg: #ffffff;
+        --weather-available: #facc15; /* 강조할 노란색 */
       }
       body.dark-mode {
         --bg-main: #0f172a;
@@ -39,11 +40,21 @@
       label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
       input, select, textarea { width: 100%; padding: 10px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); margin-top: 4px; box-sizing: border-box; font-size: 0.95rem; }
       
-      /* Flatpickr 커스텀 스타일: 데이터 가용 날짜 진하게 */
-      .available-day { font-weight: 900 !important; color: var(--primary) !important; border-bottom: 2px solid var(--primary) !important; }
+      /* Flatpickr 커스텀 스타일: 날씨 가용 날짜 노란색으로 강조 */
+      .available-day { 
+        font-weight: 900 !important; 
+        color: var(--weather-available) !important; 
+        border-bottom: 2.5px solid var(--weather-available) !important;
+        text-shadow: 0px 0px 1px rgba(0,0,0,0.2);
+      }
+      
+      .dark-mode .available-day {
+        text-shadow: 0px 0px 4px rgba(0,0,0,0.8);
+      }
+
       .dark-mode .flatpickr-calendar { background: #1e293b; color: #fff; border: 1px solid #475569; }
       .dark-mode .flatpickr-day { color: #cbd5e1; }
-      .dark-mode .flatpickr-day.selected { background: var(--primary); }
+      .dark-mode .flatpickr-day.selected { background: var(--primary); color: white !important; }
 
       .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
       .time-box { background: var(--bg-card); padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border-color); }
@@ -63,7 +74,6 @@
       .checklist-item span { flex: 1; font-size: 0.9rem; }
       
       .weather-badge { font-size: 0.8rem; color: #fff; margin-bottom: 12px; background: var(--primary); padding: 8px 14px; border-radius: 10px; display: inline-block; font-weight: bold; box-shadow: 0 2px 5px rgba(99, 102, 241, 0.3); }
-      .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; }
     </style>
   </head>
   <body class="dark-mode">
@@ -160,7 +170,6 @@
     <script>
       const APP_SCRIPT_URL = "YOUR_APP_SCRIPT_URL"; 
       let globalRules = JSON.parse(localStorage.getItem('4d_rules_cache')) || { defaultRules: [], monthlyRules: [], eventRules: [] };
-      let extraPhotoCount = 0;
       let isExpanded = false;
 
       // 1. 날짜 가용 범위 설정 (오늘 기준 전후 14일)
@@ -170,20 +179,21 @@
         const target = new Date(date);
         target.setHours(0,0,0,0);
         const diff = Math.abs(target - today) / (1000 * 60 * 60 * 24);
-        return diff <= 14; // 전후 14일은 진하게 표시
+        return diff <= 14; 
       };
 
       window.onload = async () => {
         initTimeOptions();
         initSelects();
         
-        // Flatpickr 초기화 (날짜 가용성 시각화 포함)
+        // Flatpickr 초기화 (날짜 강조 기능 탑재)
         flatpickr("#workDate", { 
           locale: "ko", 
           defaultDate: "today",
           onDayCreate: (dObj, dStr, fp, dayElem) => {
             if (isAvailableDate(dayElem.dateObj)) {
-              dayElem.classList.add("available-day"); // 진한 글씨 스타일 클래스 추가
+              // 날씨 확인 가능한 날짜에 노란색 글씨 적용
+              dayElem.classList.add("available-day"); 
             }
           },
           onChange: (selectedDates, dateStr) => { 
@@ -200,7 +210,7 @@
         syncEndTime();
       };
 
-      // 2. 날씨 데이터 동기화 함수 (날짜 파라미터 정확히 매핑)
+      // 2. 날씨 데이터 동기화 함수
       async function fetchWeather(targetDate) {
         const weatherText = document.getElementById('weatherInfoText');
         weatherText.innerText = `📍 ${targetDate} 기상 조회...`;
@@ -213,11 +223,9 @@
         navigator.geolocation.getCurrentPosition(async (pos) => {
           try {
             const { latitude, longitude } = pos.coords;
-            // Open-Meteo API: 특정 날짜(start_date, end_date)를 명시하여 과거/미래 데이터 호출
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,weather_code,relative_humidity_2m&timezone=Asia/Seoul`);
             const d = await res.json();
             
-            // 특정 날짜의 정오(12시) 데이터 추출
             const temp = d.hourly.temperature_2m[12];
             const hum = d.hourly.relative_humidity_2m[12];
             const code = d.hourly.weather_code[12];
@@ -227,7 +235,7 @@
             const label = targetDate === todayStr ? '오늘' : targetDate;
             
             weatherText.innerText = `기상(${label}): ${conditionMap[code] || '흐림'} (${temp}°C, 습도 ${hum}%)`;
-            weatherText.style.background = (code >= 61) ? '#ef4444' : 'var(--primary)'; // 비/눈 오면 배경 빨간색으로 경고
+            weatherText.style.background = (code >= 61) ? '#ef4444' : 'var(--primary)';
           } catch (e) { 
             weatherText.innerText = "📍 해당 날짜 기상 정보 없음"; 
             weatherText.style.background = "#64748b";
@@ -237,13 +245,12 @@
         });
       }
 
-      // 테마 토글
+      // 테마 토글 및 기타 초기화 로직 유지
       document.getElementById('themeToggleBtn').onclick = function() {
         const isDark = document.body.classList.toggle('dark-mode');
         this.innerText = isDark ? '☀️' : '🌙';
       };
 
-      // 시간 옵션 설정
       function initTimeOptions() {
         const startH = document.getElementById('startHour'), endH = document.getElementById('endHour');
         const range = isExpanded ? {start: 0, end: 23} : {start: 6, end: 20};
@@ -274,7 +281,6 @@
         for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}%</option>`;
       }
 
-      // 체크리스트 업데이트
       function updateChecklist() {
         const list = document.getElementById('checklistItems');
         list.innerHTML = '';
@@ -318,7 +324,6 @@
         globalRules.defaultRules.forEach(d => addRuleRow('default', d));
       }
 
-      // 탭 전환
       function switchTab(t) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
