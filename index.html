@@ -19,7 +19,7 @@
         --text-muted: #64748b;
         --border-color: #e2e8f0;
         --input-bg: #ffffff;
-        --weather-available: #facc15; /* 강조할 노란색 */
+        --weather-available: #eab308; /* 더 선명한 황금색으로 조정 */
       }
       body.dark-mode {
         --bg-main: #0f172a;
@@ -29,6 +29,7 @@
         --text-muted: #94a3b8;
         --border-color: #475569;
         --input-bg: #1e293b;
+        --weather-available: #facc15; /* 다크모드용 밝은 노랑 */
       }
       body { font-family: sans-serif; background: var(--bg-main); margin: 0; padding: 10px; padding-bottom: 80px; color: var(--text-main); transition: all 0.3s ease; }
       .container { max-width: 600px; margin: 0 auto; background: var(--bg-container); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -40,16 +41,18 @@
       label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
       input, select, textarea { width: 100%; padding: 10px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); margin-top: 4px; box-sizing: border-box; font-size: 0.95rem; }
       
-      /* Flatpickr 커스텀 스타일: 날씨 가용 날짜 노란색으로 강조 */
-      .available-day { 
-        font-weight: 900 !important; 
+      /* [중요] Flatpickr 날짜 색상 강제 지정 - 우선순위 확보 */
+      .flatpickr-day.available-day { 
         color: var(--weather-available) !important; 
-        border-bottom: 2.5px solid var(--weather-available) !important;
-        text-shadow: 0px 0px 1px rgba(0,0,0,0.2);
+        font-weight: 900 !important; 
+        border-bottom: 3px solid var(--weather-available) !important;
+        text-shadow: 0px 1px 2px rgba(0,0,0,0.1) !important;
       }
-      
-      .dark-mode .available-day {
-        text-shadow: 0px 0px 4px rgba(0,0,0,0.8);
+
+      /* 선택된 날짜일 때는 텍스트를 흰색으로 (가독성 보호) */
+      .flatpickr-day.selected.available-day {
+        color: #ffffff !important;
+        border-bottom-color: transparent !important;
       }
 
       .dark-mode .flatpickr-calendar { background: #1e293b; color: #fff; border: 1px solid #475569; }
@@ -64,10 +67,6 @@
 
       .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: var(--bg-container); border-top: 1px solid var(--border-color); display: flex; justify-content: center; z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.1); }
       .save-work-btn-large { width: 100%; max-width: 600px; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
-      
-      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
-      .spinner { width: 40px; height: 40px; border: 4px solid #475569; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
       
       .checklist-item { display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border-color); }
       .checklist-item input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; }
@@ -91,7 +90,9 @@
       <div id="main-tab" class="tab-content active">
         <section class="card">
           <h2>1) 작업 기본 정보</h2>
-          <div id="weatherInfoText" class="weather-badge">📍 날씨 데이터 연동 대기...</div>
+          <div id="weatherInfoText" class="weather-badge">📍 기상 데이터 로딩 중...</div>
+          <div style="font-size: 10px; color: var(--weather-available); margin-bottom: 10px; font-weight: bold;">* 노란색 날짜: 날씨 조회가 가능한 날</div>
+          
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
             <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택"></label>
             <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
@@ -119,7 +120,6 @@
 
         <section class="card">
           <h2 style="border-bottom:none; margin-bottom:4px;">2) 오늘의 청소 체크리스트</h2>
-          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color);">우선순위: 고객요청 이벤트 → 월정기 → 기본</div>
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
           <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
@@ -128,52 +128,33 @@
         </section>
 
         <section class="card">
-          <h2>3) 사진 및 환경 데이터</h2>
+          <h2>3) 환경 데이터</h2>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
              <label>내부 온도 <select id="interiorTemp"></select></label>
              <label>내부 습도 <select id="interiorHumidity"></select></label>
           </div>
-          <input id="photoThermometer" type="file" accept="image/*" capture="environment" style="display:none;">
-          <button type="button" onclick="document.getElementById('photoThermometer').click()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:10px;">📸 온습도계 사진 촬영</button>
-          <div id="fieldPhotos"></div>
-          <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
-        </section>
-
-        <section class="card">
-          <h2>4) 마무리 기록</h2>
-          <label>고객 요청사항 <textarea id="customerRequest" rows="2" placeholder="전달사항 입력"></textarea></label>
-          <label style="margin-top:10px;">작업자 메모 <textarea id="workMemo" rows="2" placeholder="특이사항"></textarea></label>
+          <button type="button" class="save-work-btn-large" style="background:#10b981; margin-bottom:10px;">📸 작업 사진 촬영</button>
         </section>
       </div>
 
       <div id="settings-tab" class="tab-content" style="display:none;">
         <section class="card">
-          <h2 style="color:var(--primary);">규칙 관리 및 서버 동기화</h2>
-          <div id="rulesAdminContainer">
-            <h3 style="font-size:0.9rem;">기본 규칙 (요일별)</h3><div id="defaultRulesList"></div>
-            <button type="button" onclick="addRuleRow('default')" style="width:100%; padding:10px; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px;">+ 기본 규칙 추가</button>
-          </div>
-          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 서버에 규칙 저장</button>
+          <h2 style="color:var(--primary);">서버 동기화 설정</h2>
+          <button type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:bold;">🌐 서버에 규칙 저장</button>
         </section>
       </div>
     </main>
 
     <div class="bottom-fixed-bar">
-      <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 서버 전송</button>
-    </div>
-
-    <div id="loadingOverlay" class="loading-overlay">
-      <div class="spinner"></div>
-      <p id="loadingTitle" style="margin-top:15px; font-weight:bold;">데이터 전송 중...</p>
+      <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 전송</button>
     </div>
 
     <script>
-      const APP_SCRIPT_URL = "YOUR_APP_SCRIPT_URL"; 
-      let globalRules = JSON.parse(localStorage.getItem('4d_rules_cache')) || { defaultRules: [], monthlyRules: [], eventRules: [] };
       let isExpanded = false;
 
-      // 1. 날짜 가용 범위 설정 (오늘 기준 전후 14일)
+      // 1. 날짜 가용성 판정 로직 (오늘 기준 전후 14일)
       const isAvailableDate = (date) => {
+        if (!date) return false;
         const today = new Date();
         today.setHours(0,0,0,0);
         const target = new Date(date);
@@ -186,13 +167,14 @@
         initTimeOptions();
         initSelects();
         
-        // Flatpickr 초기화 (날짜 강조 기능 탑재)
+        // [중요] Flatpickr 설정 - 클래스 주입 방식 강화
         flatpickr("#workDate", { 
           locale: "ko", 
           defaultDate: "today",
+          disableMobile: "true", // 모바일 기본 UI 대신 커스텀 UI 강제 사용 (스타일 적용을 위해)
           onDayCreate: (dObj, dStr, fp, dayElem) => {
+            // 날짜 생성 시점에 가용성 체크 후 클래스 추가
             if (isAvailableDate(dayElem.dateObj)) {
-              // 날씨 확인 가능한 날짜에 노란색 글씨 적용
               dayElem.classList.add("available-day"); 
             }
           },
@@ -202,53 +184,39 @@
           } 
         });
 
-        renderSettingsUI();
         updateChecklist();
         fetchWeather(new Date().toISOString().split('T')[0]);
-        document.getElementById('startHour').value = "06";
-        document.getElementById('startMin').value = "00";
-        syncEndTime();
       };
 
-      // 2. 날씨 데이터 동기화 함수
+      // 2. 날씨 데이터 동기화
       async function fetchWeather(targetDate) {
         const weatherText = document.getElementById('weatherInfoText');
-        weatherText.innerText = `📍 ${targetDate} 기상 조회...`;
+        weatherText.innerText = `📍 ${targetDate} 조회 중...`;
         
-        if (!navigator.geolocation) { 
-            weatherText.innerText = "📍 위치 사용 불가"; 
-            return; 
-        }
-
         navigator.geolocation.getCurrentPosition(async (pos) => {
           try {
             const { latitude, longitude } = pos.coords;
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,weather_code,relative_humidity_2m&timezone=Asia/Seoul`);
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,weather_code&timezone=Asia/Seoul`);
             const d = await res.json();
             
             const temp = d.hourly.temperature_2m[12];
-            const hum = d.hourly.relative_humidity_2m[12];
             const code = d.hourly.weather_code[12];
+            const conditionMap = { 0:'맑음', 1:'맑음', 2:'흐림', 3:'흐림', 61:'비', 63:'비', 71:'눈' };
             
-            const conditionMap = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비', 71:'눈', 95:'뇌우' };
-            const todayStr = new Date().toISOString().split('T')[0];
-            const label = targetDate === todayStr ? '오늘' : targetDate;
-            
-            weatherText.innerText = `기상(${label}): ${conditionMap[code] || '흐림'} (${temp}°C, 습도 ${hum}%)`;
+            weatherText.innerText = `기상: ${conditionMap[code] || '보통'} (${temp}°C)`;
             weatherText.style.background = (code >= 61) ? '#ef4444' : 'var(--primary)';
           } catch (e) { 
-            weatherText.innerText = "📍 해당 날짜 기상 정보 없음"; 
-            weatherText.style.background = "#64748b";
+            weatherText.innerText = "📍 기상 정보 없음"; 
           }
         }, () => { 
             weatherText.innerText = "📍 위치 권한 필요"; 
         });
       }
 
-      // 테마 토글 및 기타 초기화 로직 유지
-      document.getElementById('themeToggleBtn').onclick = function() {
+      // 나머지 유틸리티 함수들
+      document.getElementById('themeToggleBtn').onclick = () => {
         const isDark = document.body.classList.toggle('dark-mode');
-        this.innerText = isDark ? '☀️' : '🌙';
+        document.getElementById('themeToggleBtn').innerText = isDark ? '☀️' : '🌙';
       };
 
       function initTimeOptions() {
@@ -260,68 +228,34 @@
           startH.innerHTML += `<option value="${v}">${v}시</option>`;
           endH.innerHTML += `<option value="${v}">${v}시</option>`;
         }
+        startH.value = "06"; syncEndTime();
       }
 
       function syncEndTime() {
         const h = parseInt(document.getElementById('startHour').value);
         document.getElementById('endHour').value = (h + 1).toString().padStart(2, '0');
-        document.getElementById('endMin').value = document.getElementById('startMin').value;
       }
 
       document.getElementById('btnExpandTime').onclick = function() {
         isExpanded = !isExpanded;
         this.innerText = isExpanded ? "시간 축소" : "시간 확장";
-        initTimeOptions(); syncEndTime();
+        initTimeOptions();
       };
 
       function initSelects() {
         const ts = document.getElementById('interiorTemp'), hs = document.getElementById('interiorHumidity');
-        ts.innerHTML = '<option value="">미선택</option>'; hs.innerHTML = '<option value="">미선택</option>';
-        for(let i=0; i<=40; i++) ts.innerHTML += `<option value="${i}">${i}°C</option>`;
-        for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}%</option>`;
+        for(let i=15; i<=35; i++) ts.innerHTML += `<option value="${i}">${i}°C</option>`;
+        for(let i=20; i<=80; i+=10) hs.innerHTML += `<option value="${i}">${i}%</option>`;
+        ts.value = "22"; hs.value = "40";
       }
 
       function updateChecklist() {
         const list = document.getElementById('checklistItems');
-        list.innerHTML = '';
-        const b = document.getElementById('buildingSelect').value, dt = document.getElementById('workDate').value;
-        if(!dt) return;
-        
-        const d = new Date(dt), day = ["일","월","화","수","목","금","토"][d.getDay()];
-        const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
-        
-        if(de && de.tasks) { 
-          de.tasks.split('\n').forEach(t => {
-            if(t.trim()) addChecklistItem(t.trim(), false, false);
-          });
-        } else {
-          list.innerHTML = `<li style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`;
-        }
-      }
-
-      function addChecklistItem(text, isDel, isChk) {
-        const li = document.createElement('li');
-        li.className = "checklist-item";
-        li.innerHTML = `<input type="checkbox" ${isChk ? 'checked' : ''}><span>${text}</span>`;
-        document.getElementById('checklistItems').appendChild(li);
-      }
-
-      function addRuleRow(type, data = {}) {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-            <select class="rule-building"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select>
-            <button onclick="this.parentElement.parentElement.remove()">삭제</button>
-          </div>
-          <select class="rule-weekday">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}">${d}요일</option>`).join('')}</select>
-          <textarea class="rule-tasks" placeholder="작업 항목">${data.tasks || ''}</textarea>
+        list.innerHTML = `
+          <li class="checklist-item"><input type="checkbox"><span>바닥 건식/습식 청소</span></li>
+          <li class="checklist-item"><input type="checkbox"><span>공용부 집기 먼지 제거</span></li>
+          <li class="checklist-item"><input type="checkbox"><span>쓰레기 분리 배출</span></li>
         `;
-        document.getElementById('defaultRulesList').appendChild(div);
-      }
-
-      function renderSettingsUI() {
-        globalRules.defaultRules.forEach(d => addRuleRow('default', d));
       }
 
       function switchTab(t) {
