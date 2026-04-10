@@ -63,13 +63,33 @@
       .photo-btn-label.disabled { background: var(--text-muted); opacity: 0.5; cursor: not-allowed; }
 
       /* ==========================================
-         [핵심 수정] 달력 날짜 색상 우선순위 극대화
+         [핵심 수정] 다크모드 달력 글씨 색상 일괄 흰색 처리
          ========================================== */
       .dark-mode .flatpickr-calendar { background: #1e293b !important; border: 1px solid #475569 !important; }
+      
+      /* 기본 날짜 및 비활성화 날짜 */
       .dark-mode span.flatpickr-day { color: #ffffff !important; }
       .dark-mode span.flatpickr-day.flatpickr-disabled, 
       .dark-mode span.flatpickr-day.prevMonthDay, 
       .dark-mode span.flatpickr-day.nextMonthDay { color: #64748b !important; }
+
+      /* [수정] 달력 상단 년/월, 요일, 화살표 색상 모두 흰색으로 강제 고정 */
+      .dark-mode .flatpickr-months .flatpickr-month,
+      .dark-mode .flatpickr-current-month,
+      .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months,
+      .dark-mode .flatpickr-current-month input.cur-year,
+      .dark-mode span.flatpickr-weekday,
+      .dark-mode .flatpickr-months .flatpickr-prev-month,
+      .dark-mode .flatpickr-months .flatpickr-next-month {
+        color: #ffffff !important;
+        fill: #ffffff !important;
+      }
+
+      /* [수정] 월 선택 드롭다운 내부 옵션(1월, 2월..)이 브라우저 기본색(검정)으로 나오는 것 방지 */
+      .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months option {
+        background: #1e293b !important;
+        color: #ffffff !important;
+      }
 
       /* 날씨 가능한 날짜 (무조건 노란색 고정, 다른 속성보다 최상위 우선) */
       html body span.flatpickr-day.weather-available,
@@ -92,7 +112,6 @@
     <main class="container">
       <div class="app-header">
         <h1 style="font-size: 1.3rem; margin:0;">4D클린 현장 일지</h1>
-        <!-- 다크모드 토글 버튼 정상화 -->
         <button id="themeToggleBtn" type="button" style="background:none; border:none; font-size: 1.5rem; cursor:pointer;">☀️</button>
       </div>
 
@@ -136,7 +155,6 @@
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
           <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
-            <!-- 추가 버튼 정상화 -->
             <button id="addCustomItemBtn" type="button" style="background:var(--primary); color:white; border:none; padding:0 15px; height: 42px; border-radius:6px; font-weight:bold;">추가</button>
           </div>
         </section>
@@ -150,7 +168,6 @@
           <input id="photoThermometer" type="file" accept="image/*" capture="environment" style="display:none;">
           <button type="button" onclick="document.getElementById('photoThermometer').click()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:10px;">📸 온습도계 사진 촬영</button>
           <div id="fieldPhotos"></div>
-          <!-- 사진 추가 버튼 정상화 -->
           <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
         </section>
 
@@ -195,14 +212,10 @@
       let extraPhotoCount = 0;
       let isExpanded = false;
 
-      // ==========================================
-      // [1] 앱 초기화 및 다크모드/달력 렌더링 정상화
-      // ==========================================
       window.onload = async () => {
         initTimeOptions();
         initSelects();
         
-        // 과거 30일 ~ 미래 14일 계산 (달력 노란색 표시용)
         const todayObj = new Date();
         todayObj.setHours(0,0,0,0);
         const minWeatherDate = new Date(todayObj); minWeatherDate.setDate(todayObj.getDate() - 30);
@@ -213,7 +226,6 @@
           defaultDate: "today", 
           disableMobile: true,
           onDayCreate: function(dObj, dStr, fp, dayElem) {
-            // 과거~미래 구간에 정확하게 weather-available 클래스 주입
             if (dayElem.dateObj >= minWeatherDate && dayElem.dateObj <= maxWeatherDate) {
               dayElem.classList.add("weather-available");
             }
@@ -231,7 +243,6 @@
         document.getElementById('startMin').value = "00";
         syncEndTime();
 
-        // 저장된 테마 불러오기
         const savedTheme = localStorage.getItem('4d_theme') || 'dark';
         if (savedTheme === 'light') { 
           document.body.classList.remove('dark-mode'); 
@@ -239,16 +250,12 @@
         }
       };
 
-      // 다크모드/라이트모드 토글 버튼 정상화
       document.getElementById('themeToggleBtn').onclick = function() {
         const isDark = document.body.classList.toggle('dark-mode');
         this.innerText = isDark ? '☀️' : '🌙';
         localStorage.setItem('4d_theme', isDark ? 'dark' : 'light');
       };
 
-      // ==========================================
-      // [2] 날씨 조회 시스템 정상화
-      // ==========================================
       async function fetchWeather(targetDate) {
         const weatherText = document.getElementById('weatherInfoText');
         weatherText.innerText = `📍 ${targetDate} 기상 조회 중...`;
@@ -263,7 +270,6 @@
         navigator.geolocation.getCurrentPosition(async (pos) => {
           try {
             const { latitude, longitude } = pos.coords;
-            // 과거/미래 상관없이 데이터를 가져오도록 hourly 파라미터 사용
             const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia/Seoul`);
             const d = await res.json();
             
@@ -289,9 +295,6 @@
         }, { timeout: 5000 });
       }
 
-      // ==========================================
-      // [3] 체크리스트 로직 정상화 (버튼 및 렌더링)
-      // ==========================================
       function updateChecklist() {
         const list = document.getElementById('checklistItems');
         if (!list) return;
@@ -328,11 +331,9 @@
         document.getElementById('checklistItems').appendChild(li);
       }
 
-      // 현장 추가 항목 [추가] 버튼 정상화
       document.getElementById('addCustomItemBtn').onclick = () => {
         const i = document.getElementById('customItemInput');
         if (i.value.trim()) { 
-          // 추가 시 기존의 '등록된 규칙 없음' 안내문 제거
           const emptyMsg = document.querySelector('#checklistItems li[style*="dashed"]');
           if (emptyMsg) emptyMsg.remove();
           
@@ -341,9 +342,6 @@
         }
       };
 
-      // ==========================================
-      // [4] 사진 추가 로직 정상화 (버튼 및 인터락)
-      // ==========================================
       document.getElementById('addFieldPhotoBtn').onclick = () => {
         extraPhotoCount++;
         const div = document.createElement('div');
@@ -363,7 +361,6 @@
         document.getElementById('fieldPhotos').appendChild(div);
       };
 
-      // 글로벌 함수로 선언하여 HTML 인라인 이벤트에서 호출 가능하도록 함
       window.togglePhotoBtn = function(id) {
         const input = document.getElementById(`desc_extra_${id}`);
         const label = document.getElementById(`label_file_extra_${id}`);
@@ -373,9 +370,6 @@
         file.disabled = !ok;
       };
 
-      // ==========================================
-      // [5] 시간 및 선택 UI 관련 정상화
-      // ==========================================
       function initTimeOptions() {
         const startH = document.getElementById('startHour'), endH = document.getElementById('endHour');
         const range = isExpanded ? {start: 0, end: 23} : {start: 6, end: 20};
@@ -413,9 +407,6 @@
         for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}%</option>`;
       }
 
-      // ==========================================
-      // [6] 설정 탭 렌더링 정상화 (규칙 추가/삭제)
-      // ==========================================
       function renderSettingsUI() {
         const renderList = (id, type, arr) => {
           const l = document.getElementById(id); 
@@ -480,9 +471,6 @@
         document.querySelector(`[data-tab="${t}"]`).classList.add('active');
       }
 
-      // ==========================================
-      // [7] 고속 압축 및 전송 로직 (정상 작동)
-      // ==========================================
       const compressImage = (file, maxWidth = 1024, quality = 0.6) => {
         return new Promise((resolve) => {
           const reader = new FileReader();
@@ -522,7 +510,7 @@
           const etH = document.getElementById('endHour').value, etM = document.getElementById('endMin').value;
           
           let diffMin = (parseInt(etH)*60 + parseInt(etM)) - (parseInt(stH)*60 + parseInt(stM));
-          if (diffMin < 0) diffMin += 24 * 60; // 야간 작업 대응
+          if (diffMin < 0) diffMin += 24 * 60; 
           const duration = `${Math.floor(diffMin/60)}시간 ${diffMin%60}분`;
           
           const payload = {
