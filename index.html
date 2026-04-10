@@ -19,6 +19,7 @@
         --text-muted: #64748b;
         --border-color: #e2e8f0;
         --input-bg: #ffffff;
+        --weather-available: #facc15; /* 날씨 가능 날짜 노란색 */
       }
       body.dark-mode {
         --bg-main: #0f172a;
@@ -58,6 +59,65 @@
       .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; }
       .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
       .photo-btn-label.disabled { background: var(--text-muted); opacity: 0.5; cursor: not-allowed; }
+
+      /* =========================================================
+         [핵심 UI] 달력 날씨 가용 날짜 노란색 강조 (두께 및 다크모드 대응)
+      ========================================================= */
+      /* 기본 노란색 적용 */
+      .flatpickr-day.weather-available { 
+        color: var(--weather-available) !important; 
+        font-weight: bold !important; 
+        text-shadow: none !important; 
+      }
+
+      /* 다크모드에서 흰색으로 덮어씌워지는 현상 방지 */
+      .dark-mode .flatpickr-day.weather-available {
+        color: var(--weather-available) !important;
+      }
+
+      .flatpickr-day.selected.weather-available { 
+        color: #ffffff !important; 
+      }
+
+      /* =========================================================
+         [핵심 UI] 다크모드 달력 완벽 호환
+      ========================================================= */
+      .dark-mode .flatpickr-calendar { 
+        background: #1e293b !important; 
+        border: 1px solid #475569 !important; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5) !important; 
+      }
+      .dark-mode .flatpickr-months .flatpickr-month,
+      .dark-mode .flatpickr-current-month,
+      .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months,
+      .dark-mode .flatpickr-current-month input.cur-year { 
+        color: #ffffff !important; 
+        fill: #ffffff !important; 
+      }
+      .dark-mode .flatpickr-weekdays,
+      .dark-mode span.flatpickr-weekday { 
+        color: #ffffff !important; 
+      }
+      .dark-mode .flatpickr-day { 
+        color: #ffffff !important; 
+      }
+      .dark-mode .flatpickr-day.flatpickr-disabled,
+      .dark-mode .flatpickr-day.prevMonthDay, 
+      .dark-mode .flatpickr-day.nextMonthDay { 
+        color: #64748b !important; 
+      }
+      .dark-mode .flatpickr-day:hover { 
+        background: #334155 !important; 
+      }
+      .dark-mode .flatpickr-day.selected { 
+        background: var(--primary) !important; 
+        color: #ffffff !important; 
+        border-color: var(--primary) !important; 
+      }
+      .dark-mode .flatpickr-prev-month svg, 
+      .dark-mode .flatpickr-next-month svg { 
+        fill: #ffffff !important; 
+      }
     </style>
   </head>
   <body class="dark-mode">
@@ -76,8 +136,9 @@
         <section class="card">
           <h2>1) 작업 기본 정보</h2>
           <div id="weatherInfoText" class="weather-badge">📍 날씨 데이터 연동 중...</div>
+          <div style="font-size: 10px; color: var(--weather-available); margin-bottom: 10px; font-weight: bold;">* 노란색 날짜: 과거/미래 날씨 조회가 가능한 날</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <label>작업 날짜 <input id="workDate" type="date"></label>
+            <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택"></label>
             <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
           <label style="margin-top:10px;">대상 건물 <select id="buildingSelect" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
@@ -167,7 +228,27 @@
       window.onload = async () => {
         initTimeOptions();
         initSelects();
-        flatpickr("#workDate", { locale: "ko", defaultDate: "today", onChange: (selectedDates, dateStr) => { updateChecklist(); fetchWeather(dateStr); } });
+        
+        const todayObj = new Date();
+        todayObj.setHours(0,0,0,0);
+        const minWeatherDate = new Date(todayObj); minWeatherDate.setDate(todayObj.getDate() - 30);
+        const maxWeatherDate = new Date(todayObj); maxWeatherDate.setDate(todayObj.getDate() + 14);
+
+        flatpickr("#workDate", { 
+          locale: "ko", 
+          defaultDate: "today", 
+          disableMobile: true,
+          onDayCreate: function(dObj, dStr, fp, dayElem) {
+            if (dayElem.dateObj >= minWeatherDate && dayElem.dateObj <= maxWeatherDate) {
+              dayElem.classList.add("weather-available");
+            }
+          },
+          onChange: (selectedDates, dateStr) => { 
+            updateChecklist(); 
+            fetchWeather(dateStr); 
+          } 
+        });
+
         renderSettingsUI();
         updateChecklist();
         fetchWeather(new Date().toISOString().split('T')[0]);
@@ -188,18 +269,29 @@
         const weatherText = document.getElementById('weatherInfoText');
         weatherText.innerText = `📍 ${targetDate} 기상 조회 중...`;
         if (!navigator.geolocation) { weatherText.innerText = "📍 위치 사용 불가"; return; }
+        
         navigator.geolocation.getCurrentPosition(async (pos) => {
           try {
             const { latitude, longitude } = pos.coords;
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&current=temperature_2m,relative_humidity_2m,weather_code&hourly=temperature_2m,weather_code&timezone=Asia/Seoul`);
+            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia/Seoul`);
             const d = await res.json();
-            const temp = d.current ? d.current.temperature_2m : (d.hourly ? d.hourly.temperature_2m[12] : '??');
-            const hum = d.current ? d.current.relative_humidity_2m : '??';
-            const code = d.current ? d.current.weather_code : (d.hourly ? d.hourly.weather_code[12] : 0);
-            const c = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비', 71:'눈', 95:'뇌우' };
-            const label = targetDate === new Date().toISOString().split('T')[0] ? '오늘' : targetDate;
-            weatherText.innerText = `기상(${label}): ${c[code] || '흐림'} (${temp}°C, 습도 ${hum}%)`;
-          } catch (e) { weatherText.innerText = "📍 날씨 소환 실패"; }
+            
+            if (d.hourly && d.hourly.temperature_2m && d.hourly.temperature_2m.length > 12) {
+              const temp = d.hourly.temperature_2m[12] ?? '??';
+              const hum = d.hourly.relative_humidity_2m[12] ?? '??';
+              const code = d.hourly.weather_code[12] ?? 0;
+              const c = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비', 71:'눈', 95:'뇌우' };
+              const label = targetDate === new Date().toISOString().split('T')[0] ? '오늘' : targetDate;
+              weatherText.innerText = `기상(${label}): ${c[code] || '흐림'} (${temp}°C, 습도 ${hum}%)`;
+              weatherText.style.background = (code >= 61) ? 'var(--danger)' : 'var(--primary)';
+            } else {
+              weatherText.innerText = `📍 기상 정보 없음 (제공 범위 이탈)`;
+              weatherText.style.background = 'var(--text-muted)';
+            }
+          } catch (e) { 
+            weatherText.innerText = "📍 날씨 소환 실패"; 
+            weatherText.style.background = 'var(--text-muted)';
+          }
         }, () => { weatherText.innerText = "📍 위치 권한 필요"; });
       }
 
