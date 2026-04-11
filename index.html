@@ -39,36 +39,12 @@
       .card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 20px; background: var(--bg-container); }
       .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
       
-      .rule-section-box {
-        border: 2px solid var(--border-color);
-        border-radius: 12px;
-        padding: 15px;
-        margin-bottom: 20px;
-        background: var(--bg-card);
-      }
-      .rule-section-box h3 {
-        margin-top: 0;
-        margin-bottom: 15px;
-        font-size: 0.95rem;
-        color: var(--text-main); 
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: color 0.3s ease;
-      }
-      .rule-section-box h3::before {
-        content: "";
-        width: 4px;
-        height: 16px;
-        background: var(--primary);
-        border-radius: 2px;
-      }
+      .rule-section-box { border: 2px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 20px; background: var(--bg-card); }
+      .rule-section-box h3 { margin-top: 0; margin-bottom: 15px; font-size: 0.95rem; color: var(--text-main); display: flex; align-items: center; gap: 8px; transition: color 0.3s ease; }
+      .rule-section-box h3::before { content: ""; width: 4px; height: 16px; background: var(--primary); border-radius: 2px; }
       
-      #settings-tab h2 { color: var(--text-main); transition: color 0.3s ease; }
-
       label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
       input, select, textarea { width: 100%; padding: 10px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); margin-top: 4px; box-sizing: border-box; font-size: 0.95rem; }
-      input[readonly] { cursor: pointer; background-color: var(--input-bg) !important; }
       
       .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
       .time-box { background: var(--bg-card); padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border-color); }
@@ -88,8 +64,7 @@
       .photo-btn-label-alt { background: #e11d48; } 
       .photo-btn-label.success { background: var(--success) !important; }
       .photo-btn-label.uploading { background: var(--weather-available) !important; color: #1e293b; pointer-events: none; }
-      .photo-btn-label.disabled { opacity: 0.3; pointer-events: none; cursor: not-allowed; }
-
+      
       .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
       .task-tabs label { flex: 1 1 calc(50% - 6px); min-width: 130px; text-align: center; margin: 0; cursor: pointer; }
       .task-tabs input[type="radio"] { display: none; }
@@ -103,10 +78,41 @@
       .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; }
 
       .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
-      .progress-container { width: 85%; max-width: 350px; background: #334155; height: 12px; border-radius: 6px; margin-top: 25px; overflow: hidden; }
-      .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), #818cf8); transition: width 0.4s ease; border-radius: 6px; }
       .spinner { width: 50px; height: 50px; border: 5px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* [복구 및 고도화] 다크모드 캘린더 정밀 스타일 */
+      .dark-mode .flatpickr-calendar { 
+        background: #1e293b !important; 
+        border: 1px solid #475569 !important; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+      }
+      .dark-mode .flatpickr-day { color: #f1f5f9 !important; }
+      .dark-mode .flatpickr-day.nextMonthDay,
+      .dark-mode .flatpickr-day.prevMonthDay { color: #475569 !important; }
+      
+      .dark-mode .flatpickr-months .flatpickr-month,
+      .dark-mode .flatpickr-current-month,
+      .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months,
+      .dark-mode .flatpickr-current-month input.cur-year,
+      .dark-mode span.flatpickr-weekday { 
+        color: #ffffff !important; 
+        fill: #ffffff !important; 
+      }
+      
+      /* [중요] 노란색 날짜 재적용 - 다크모드에서도 선명하게 */
+      html body span.flatpickr-day.weather-available,
+      html body.dark-mode span.flatpickr-day.weather-available { 
+        color: var(--weather-available) !important; 
+        font-weight: 900 !important; 
+        text-shadow: 0 0 5px rgba(250, 204, 21, 0.5) !important;
+      }
+      
+      .flatpickr-day.selected, .dark-mode .flatpickr-day.selected {
+        background: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: #ffffff !important;
+      }
     </style>
   </head>
   <body class="dark-mode">
@@ -130,7 +136,7 @@
             <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택" readonly></label>
             <label>현장 작업자 <select id="workerName" class="auto-save"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
-          <label style="margin-top:10px;">현장 <select id="buildingSelect" class="auto-save" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
+          <label style="margin-top:10px;">현장 <select id="buildingSelect" class="auto-save" onchange="updateChecklist(true)"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
           
           <div class="time-select-grid">
             <div class="time-box">
@@ -172,14 +178,12 @@
              <label>내부 온도 <select id="interiorTemp" class="auto-save"></select></label>
              <label>내부 습도 <select id="interiorHumidity" class="auto-save"></select></label>
           </div>
-          
           <div class="photo-btn-group" style="margin-bottom: 15px;">
             <input id="photoThermometerCam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="handleImmediateUpload(this, 'photoThermometerCamLabel', 'cam', 'main_thermometer')">
             <label id="photoThermometerCamLabel" class="photo-btn-label" onclick="document.getElementById('photoThermometerCam').click()">📸 온습도계 사진촬영</label>
             <input id="photoThermometerGal" type="file" accept="image/*" style="display:none;" onchange="handleImmediateUpload(this, 'photoThermometerGalLabel', 'gal', 'main_thermometer')">
             <label id="photoThermometerGalLabel" class="photo-btn-label photo-btn-label-alt" onclick="document.getElementById('photoThermometerGal').click()">🖼️ 온습도계 사진첨부</label>
           </div>
-          
           <div id="fieldPhotos"></div>
           <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:15px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
         </section>
@@ -194,7 +198,7 @@
       <div id="settings-tab" class="tab-content" style="display:none;">
         <section class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="color:#ffffff; margin:0; border:none; padding:0;">규칙 관리</h2>
+            <h2 style="color:var(--text-main); margin:0; border:none; padding:0;">규칙 관리</h2>
             <button id="loadRulesFromServerBtn" type="button" style="background:#10b981; color:white; border:none; border-radius:6px; padding:6px 12px; font-size:0.8rem; font-weight:bold;">📥 서버에서 불러오기</button>
           </div>
           <div id="rulesAdminContainer">
@@ -215,7 +219,7 @@
       let globalRules = { defaultRules: [], monthlyRules: [], eventRules: [] };
       let extraPhotoCount = 0;
       let isExpanded = false;
-      let uploadedPhotos = {}; // 개별 업로드된 사진 URL 보관 (Key: photoKey, Value: {url, name})
+      let uploadedPhotos = {}; 
 
       async function fetchWithRetry(url, options, maxRetries = 5) {
         let delay = 1000;
@@ -240,7 +244,6 @@
             const span = li.querySelector('span'), input = li.querySelector('input');
             return { text: span ? span.innerText : "", checked: input ? input.checked : false, isCustom: li.querySelector('.btn-del-item') !== null };
           });
-
         const draft = {
           workerName: document.getElementById('workerName').value,
           buildingSelect: document.getElementById('buildingSelect').value,
@@ -268,20 +271,18 @@
             ["workerName", "buildingSelect", "customerRequest", "workMemo", "startHour", "startMin", "endHour", "endMin", "interiorTemp", "interiorHumidity", "workDate"].forEach(key => {
               const el = document.getElementById(key); if(el && draft[key]) el.value = draft[key];
             });
-            if (draft.checklist) {
+            if (draft.checklist && draft.checklist.length > 0) {
               const list = document.getElementById('checklistItems'); list.innerHTML = '';
               draft.checklist.forEach(item => addChecklistItem(item.text, item.isCustom, item.checked));
             }
             if (draft.uploadedPhotos) {
               uploadedPhotos = draft.uploadedPhotos;
-              // 온습도계 버튼 상태 복구
               if (uploadedPhotos['main_thermometer']) {
                 document.getElementById('photoThermometerCamLabel').innerText = "✅ 업로드 완료";
                 document.getElementById('photoThermometerCamLabel').classList.add('success');
                 document.getElementById('photoThermometerGalLabel').style.display = 'none';
               }
             }
-            // 작업 사진 행들 복구
             if (draft.extraPhotoCount) {
               for(let i=1; i<=draft.extraPhotoCount; i++) {
                 addExtraPhotoRow(i);
@@ -303,75 +304,63 @@
         });
       }
 
-      // [신설] 개별 사진 즉시 업로드 처리 함수
       async function handleImmediateUpload(input, labelId, type, photoKey) {
         if (!input.files || !input.files[0]) return;
-        
         const label = document.getElementById(labelId);
-        const originalText = label.innerText;
         label.innerText = "⏳ 전송 중...";
         label.classList.add('uploading');
-
         try {
           const file = input.files[0];
           const photoData = await compressImage(file);
           const workDate = document.getElementById('workDate').value.replace(/-/g,'');
           const building = document.getElementById('buildingSelect').value;
-          
-          let fileName = "";
-          if (photoKey === 'main_thermometer') {
-            fileName = `${workDate}_내부온습도.JPG`;
-          } else {
-            const id = photoKey.split('_')[1];
-            const taskRad = document.querySelector(`input[name="task_${id}"]:checked`);
-            let tNm = taskRad ? taskRad.value : "작업사진";
-            if (tNm === 'custom') tNm = document.getElementById(`custom_task_${id}`).value.trim() || "추가항목";
-            const sRad = document.querySelector(`input[name="status_${id}"]:checked`);
-            fileName = `${workDate}_${tNm}_${sRad ? sRad.value : "진행"}`.replace(/\s+/g,'_') + ".JPG";
-          }
-
+          let fileName = (photoKey === 'main_thermometer') ? `${workDate}_내부온습도.JPG` : `${workDate}_작업사진_${photoKey}.JPG`;
           const response = await fetchWithRetry(APP_SCRIPT_URL, {
             method: 'POST',
-            body: JSON.stringify({
-              action: "UPLOAD_PHOTO",
-              photoData: photoData,
-              fileName: fileName,
-              building: building,
-              yearMonthFolder: workDate.substring(0,6)
-            })
+            body: JSON.stringify({ action: "UPLOAD_PHOTO", photoData: photoData, fileName: fileName, building: building, yearMonthFolder: workDate.substring(0,6) })
           });
-
           const result = await response.json();
           if (result.status === "success") {
             uploadedPhotos[photoKey] = { url: result.url, name: result.fileName };
             label.innerText = "✅ 업로드 완료";
             label.classList.remove('uploading');
             label.classList.add('success');
-            
-            // 반대편 버튼(촬영/첨부) 숨기기
-            const otherType = (type === 'cam') ? 'Gal' : 'Cam';
-            const otherBtn = document.getElementById(labelId.replace(type.charAt(0).toUpperCase() + type.slice(1), otherType));
+            const otherBtn = document.getElementById(labelId.replace(type.charAt(0).toUpperCase() + type.slice(1), (type === 'cam' ? 'Gal' : 'Cam')));
             if (otherBtn) otherBtn.style.display = 'none';
-            
             saveDraft();
           } else { throw new Error(result.error); }
-        } catch (e) {
-          alert("업로드 실패: " + e.message);
-          label.innerText = "❌ 다시 시도";
-          label.classList.remove('uploading');
-        }
+        } catch (e) { alert("업로드 실패: " + e.message); label.innerText = "❌ 다시 시도"; label.classList.remove('uploading'); }
       }
 
       window.onload = async () => {
         initTimeOptions(); initSelects();
         const todayStr = new Date().toISOString().split('T')[0];
-        flatpickr("#workDate", { locale: "ko", defaultDate: "today", onChange: () => { updateChecklist(); fetchWeather(document.getElementById('workDate').value); saveDraft(); } });
+        
+        // [복구 및 고도화] 노란색 날짜 및 다크모드 대응 달력 초기화
+        flatpickr("#workDate", { 
+          locale: "ko", 
+          defaultDate: "today", 
+          onDayCreate: function(dObj, dStr, fp, dayElem) {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const minDate = new Date(today); minDate.setDate(today.getDate() - 30);
+            const maxDate = new Date(today); maxDate.setDate(today.getDate() + 14);
+            if (dayElem.dateObj >= minDate && dayElem.dateObj <= maxDate) {
+              dayElem.classList.add("weather-available");
+            }
+          },
+          onChange: () => { updateChecklist(true); fetchWeather(document.getElementById('workDate').value); saveDraft(); } 
+        });
+        
         loadDraft();
-        if (document.querySelectorAll('#checklistItems li').length === 0) updateChecklist();
+        if (document.querySelectorAll('#checklistItems li').length === 0) updateChecklist(true);
         fetchWeather(document.getElementById('workDate').value || todayStr);
         initAutoSaveListeners();
+        
         const savedTheme = localStorage.getItem('4d_theme') || 'dark';
-        if (savedTheme === 'light') { document.body.classList.remove('dark-mode'); document.getElementById('themeToggleBtn').innerText = '🌙'; }
+        if (savedTheme === 'light') { 
+          document.body.classList.remove('dark-mode'); 
+          document.getElementById('themeToggleBtn').innerText = '🌙'; 
+        }
       };
 
       async function fetchWeather(targetDate) {
@@ -387,21 +376,28 @@
         } catch (e) { weatherText.innerText = "📍 기상 정보 연동 실패"; }
       }
 
-      function updateChecklist() {
+      function updateChecklist(force = false) {
         const list = document.getElementById('checklistItems'); if (!list) return;
-        if (localStorage.getItem('4d_draft') && list.children.length > 0) return;
+        if (!force && localStorage.getItem('4d_draft') && list.children.length > 0) return;
+
         list.innerHTML = '';
         const b = document.getElementById('buildingSelect').value, dt = document.getElementById('workDate').value;
         if (!dt) return;
         const d = new Date(dt), day = ["일","월","화","수","목","금","토"][d.getDay()];
-        const weekStr = ["","첫째","둘째","셋째","넷째","다섯째"][Math.ceil((d.getDate() + new Date(d.getFullYear(), d.getMonth(), 1).getDay()) / 7)];
+        const weekNum = Math.ceil((d.getDate() + new Date(d.getFullYear(), d.getMonth(), 1).getDay()) / 7);
+        const weekStr = ["","첫째","둘째","셋째","넷째","다섯째"][weekNum];
+        
         let tasks = "";
         const ev = globalRules.eventRules.find(r => r.building === b && r.date === dt);
         const mo = globalRules.monthlyRules.find(r => r.building === b && r.weekOrder === weekStr && r.weekday === day);
         const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
-        tasks = (ev ? ev.tasks : (mo ? mo.tasks : (de ? de.tasks : "")));
-        if (tasks) tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false));
-        else list.innerHTML = `<li class="no-items-placeholder" style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`;
+        tasks = ev ? ev.tasks : (mo ? mo.tasks : (de ? de.tasks : ""));
+
+        if (tasks) {
+          tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false));
+        } else {
+          list.innerHTML = `<li class="no-items-placeholder" style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`;
+        }
         saveDraft();
       }
 
@@ -429,18 +425,8 @@
         let taskBtns = `<div class="task-tabs">`;
         items.forEach((item, index) => { taskBtns += `<label><input type="radio" name="task_${id}" value="${item}" onchange="handleTaskSelect(${id})" ${index === 0 ? 'checked' : ''}><span>${item}</span></label>`; });
         taskBtns += `<label><input type="radio" name="task_${id}" value="custom" onchange="handleTaskSelect(${id})" ${items.length === 0 ? 'checked' : ''}><span>✍️ 추가입력</span></label></div>`;
-
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">📸 작업 사진 #${id}</span><button type="button" onclick="document.getElementById('row_extra_${id}').remove(); delete uploadedPhotos['extra_${id}']; saveDraft();" style="background:none; border:none; color:var(--danger); font-size:0.75rem;">삭제</button></div>
-          ${taskBtns}<input type="text" id="custom_task_${id}" placeholder="추가 항목 내용 입력" style="display:none; margin-bottom: 12px; background:var(--bg-main);">
-          <div class="status-tabs"><label><input type="radio" name="status_${id}" value="작업전"><span>작업전</span></label><label><input type="radio" name="status_${id}" value="작업중" checked><span>작업중</span></label><label><input type="radio" name="status_${id}" value="작업후"><span>작업후</span></label><label><input type="radio" name="status_${id}" value="현장사진"><span>현장사진</span></label></div>
-          <div class="photo-btn-group">
-            <input type="file" id="file_extra_${id}_cam" accept="image/*" capture="environment" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_extra_${id}_cam', 'cam', 'extra_${id}')">
-            <label id="label_file_extra_${id}_cam" class="photo-btn-label" onclick="document.getElementById('file_extra_${id}_cam').click()">📸 사진촬영</label>
-            <input type="file" id="file_extra_${id}_gal" accept="image/*" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_extra_${id}_gal', 'gal', 'extra_${id}')">
-            <label id="label_file_extra_${id}_gal" class="photo-btn-label photo-btn-label-alt" onclick="document.getElementById('file_extra_${id}_gal').click()">🖼️ 사진첨부</label>
-          </div>
-        `;
+        div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">📸 작업 사진 #${id}</span><button type="button" onclick="document.getElementById('row_extra_${id}').remove(); delete uploadedPhotos['extra_${id}']; saveDraft();" style="background:none; border:none; color:var(--danger); font-size:0.75rem;">삭제</button></div>
+          ${taskBtns}<input type="text" id="custom_task_${id}" placeholder="추가 항목 내용 입력" style="display:none; margin-bottom: 12px; background:var(--bg-main);"><div class="status-tabs"><label><input type="radio" name="status_${id}" value="작업전"><span>작업전</span></label><label><input type="radio" name="status_${id}" value="작업중" checked><span>작업중</span></label><label><input type="radio" name="status_${id}" value="작업후"><span>작업후</span></label><label><input type="radio" name="status_${id}" value="현장사진"><span>현장사진</span></label></div><div class="photo-btn-group"><input type="file" id="file_extra_${id}_cam" accept="image/*" capture="environment" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_extra_${id}_cam', 'cam', 'extra_${id}')"><label id="label_file_extra_${id}_cam" class="photo-btn-label" onclick="document.getElementById('file_extra_${id}_cam').click()">📸 사진촬영</label><input type="file" id="file_extra_${id}_gal" accept="image/*" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_extra_${id}_gal', 'gal', 'extra_${id}')"><label id="label_file_extra_${id}_gal" class="photo-btn-label photo-btn-label-alt" onclick="document.getElementById('file_extra_${id}_gal').click()">🖼️ 사진첨부</label></div>`;
         document.getElementById('fieldPhotos').appendChild(div);
         handleTaskSelect(id);
       }
@@ -506,7 +492,7 @@
         globalRules = { defaultRules: collect('defaultRulesList', 'default'), monthlyRules: collect('monthlyRulesList', 'monthly'), eventRules: collect('eventRulesList', 'event') };
         localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules));
         const overlay = document.getElementById('loadingOverlay'); overlay.style.display = 'flex';
-        try { await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({action:"SAVE_RULES", rules: globalRules}) }); alert("✅ 서버 저장 완료!"); updateChecklist(); } 
+        try { await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({action:"SAVE_RULES", rules: globalRules}) }); alert("✅ 서버 저장 완료!"); updateChecklist(true); } 
         catch (e) { alert("저장 실패: " + e.message); } finally { overlay.style.display = 'none'; }
       };
 
@@ -515,7 +501,13 @@
         try {
           const res = await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', body: JSON.stringify({action:"GET_RULES"}), headers: { 'Content-Type': 'text/plain' } });
           const json = await res.json();
-          if (json.status === "success" && json.data) { globalRules = json.data; localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules)); renderSettingsUI(); updateChecklist(); alert("📥 서버 데이터 동기화 완료!"); }
+          if (json.status === "success" && json.data) { 
+            globalRules = json.data; 
+            localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules)); 
+            renderSettingsUI(); 
+            updateChecklist(true); 
+            alert("📥 서버 데이터 동기화 완료!"); 
+          }
           else alert("저장된 규칙이 없습니다.");
         } catch (e) { alert("불러오기 실패"); } finally { overlay.style.display = 'none'; }
       };
@@ -539,23 +531,19 @@
           return { item: span ? span.innerText : "", checked: input && input.checked ? "O" : "X" };
         });
         if (checklist.length === 0) { alert("⚠️ 작업 항목이 없습니다."); return; }
-        
         const overlay = document.getElementById('loadingOverlay'); overlay.style.display = 'flex';
         try {
           const stH = document.getElementById('startHour').value, stM = document.getElementById('startMin').value;
           const etH = document.getElementById('endHour').value, etM = document.getElementById('endMin').value;
           let diffMin = (parseInt(etH)*60 + parseInt(etM)) - (parseInt(stH)*60 + parseInt(stM)); if (diffMin < 0) diffMin += 1440;
-          
           const payload = {
             workDate: document.getElementById('workDate').value, startTime: `${stH}:${stM}`, endTime: `${etH}:${etM}`, workDuration: `${Math.floor(diffMin/60)}시간 ${diffMin%60}분`,
             building: document.getElementById('buildingSelect').value, worker: document.getElementById('workerName').value,
             weather: document.getElementById('weatherInfoText').innerText, interiorTemp: document.getElementById('interiorTemp').value,
             interiorHumid: document.getElementById('interiorHumidity').value, customerReq: document.getElementById('customerRequest').value,
             workMemo: document.getElementById('workMemo').value, yearMonthFolder: document.getElementById('workDate').value.substring(0,7).replace('-',''),
-            checklist: checklist,
-            photoUrls: Object.values(uploadedPhotos) // 이미 서버에 올라간 URL 목록 전송
+            checklist: checklist, photoUrls: Object.values(uploadedPhotos)
           };
-
           await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
           localStorage.removeItem('4d_draft'); alert("✅ 일지 전송 성공!"); location.reload();
         } catch (e) { alert("❌ 에러: " + e.message); } finally { overlay.style.display = 'none'; }
