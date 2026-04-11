@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>4D클린 현장 일지 (Master)</title>
-    <!-- [기술팀 조치] 가장 안정적인 버전이 명시된 cdnjs 링크로 교체하여 로딩 실패 원천 차단 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/flatpickr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/ko.min.js"></script>
@@ -40,8 +39,6 @@
       .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
       label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
       input, select, textarea { width: 100%; padding: 10px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); margin-top: 4px; box-sizing: border-box; font-size: 0.95rem; }
-      
-      /* 날짜 선택 시 모바일 키보드가 올라오는 것을 방지하기 위한 포인터 처리 */
       input[readonly] { cursor: pointer; background-color: var(--input-bg) !important; }
       
       .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
@@ -65,9 +62,25 @@
       .weather-badge { font-size: 0.8rem; color: #fff; margin-bottom: 12px; background: var(--primary); padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: bold; }
       .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; }
       .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
-      .photo-btn-label.disabled { background: var(--text-muted); opacity: 0.5; cursor: not-allowed; }
 
-      /* [수정] 다크모드 달력이 배경에 묻히지 않도록 그림자(box-shadow) 복구 및 스타일 강화 */
+      /* ==========================================
+         [신규 추가] 청소 항목 선택 타일형 버튼 스타일
+      ========================================== */
+      .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+      .task-tabs label { flex: 1 1 calc(50% - 6px); min-width: 130px; text-align: center; margin: 0; cursor: pointer; }
+      .task-tabs input[type="radio"] { display: none; }
+      .task-tabs span { display: flex; align-items: center; justify-content: center; padding: 12px 6px; font-size: 0.85rem; font-weight: bold; color: var(--text-main); background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; word-break: keep-all; height: 100%; box-sizing: border-box; }
+      .task-tabs input[type="radio"]:checked + span { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+      /* ==========================================
+         작업 상태 탭(Segmented Control) 스타일
+      ========================================== */
+      .status-tabs { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; }
+      .status-tabs label { flex: 1; text-align: center; margin: 0; cursor: pointer; }
+      .status-tabs input[type="radio"] { display: none; }
+      .status-tabs span { display: block; padding: 8px 4px; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); border-radius: 6px; transition: all 0.2s ease; }
+      .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
       .dark-mode .flatpickr-calendar { background: #1e293b !important; border: 1px solid #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important; }
       .dark-mode span.flatpickr-day { color: #ffffff !important; }
       .dark-mode span.flatpickr-day.flatpickr-disabled, 
@@ -104,27 +117,26 @@
         <section class="card">
           <h2>1) 작업 기본 정보</h2>
           <div id="weatherInfoText" class="weather-badge">📍 날씨 데이터 연동 중...</div>
-          <div style="font-size: 10px; color: var(--weather-available); margin-bottom: 10px; font-weight: bold;">* 노란색 날짜: 과거/미래 날씨 조회가 가능한 날 (클릭 시 자동 조회)</div>
+          <div style="font-size: 10px; color: var(--weather-available); margin-bottom: 10px; font-weight: bold;">* 노란색 날짜: 과거/미래 날씨 조회가 가능한 날</div>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <!-- [운영팀 조치] readonly 속성을 추가하여 모바일 키보드가 화면을 덮는 현상 원천 차단 -->
             <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택" readonly></label>
-            <label>현장 작업자 <select id="workerName"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
+            <label>현장 작업자 <select id="workerName" class="auto-save"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
-          <label style="margin-top:10px;">대상 건물 <select id="buildingSelect" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
+          <label style="margin-top:10px;">대상 건물 <select id="buildingSelect" class="auto-save" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
           
           <div class="time-select-grid">
             <div class="time-box">
               <label>시작 시간</label>
               <div style="display:flex; gap:4px; margin-top:5px;">
-                <select id="startHour" onchange="syncEndTime()"></select>
-                <select id="startMin" onchange="syncEndTime()"><option value="00">00분</option><option value="30">30분</option></select>
+                <select id="startHour" class="auto-save" onchange="syncEndTime()"></select>
+                <select id="startMin" class="auto-save" onchange="syncEndTime()"><option value="00">00분</option><option value="30">30분</option></select>
               </div>
             </div>
             <div class="time-box">
               <label>종료 시간</label>
               <div style="display:flex; gap:4px; margin-top:5px;">
-                <select id="endHour"></select>
-                <select id="endMin"><option value="00">00분</option><option value="30">30분</option></select>
+                <select id="endHour" class="auto-save"></select>
+                <select id="endMin" class="auto-save"><option value="00">00분</option><option value="30">30분</option></select>
               </div>
             </div>
           </div>
@@ -132,7 +144,13 @@
         </section>
 
         <section class="card">
-          <h2 style="border-bottom:none; margin-bottom:4px;">2) 오늘의 청소 체크리스트</h2>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
+            <h2 style="border:none; margin:0; padding:0;">2) 오늘의 청소 체크리스트</h2>
+            <div style="display:flex; gap:4px;">
+              <button type="button" onclick="checkAllItems(true)" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.7rem; font-weight:bold;">모두 체크</button>
+              <button type="button" onclick="checkAllItems(false)" style="background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:4px; padding:4px 8px; font-size:0.7rem;">모두 해제</button>
+            </div>
+          </div>
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
           <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
@@ -143,25 +161,31 @@
         <section class="card">
           <h2>3) 사진 및 환경 데이터</h2>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
-             <label>내부 온도 <select id="interiorTemp"></select></label>
-             <label>내부 습도 <select id="interiorHumidity"></select></label>
+             <label>내부 온도 <select id="interiorTemp" class="auto-save"></select></label>
+             <label>내부 습도 <select id="interiorHumidity" class="auto-save"></select></label>
           </div>
-          <input id="photoThermometer" type="file" accept="image/*" capture="environment" style="display:none;">
-          <button type="button" onclick="document.getElementById('photoThermometer').click()" style="width:100%; padding:14px; background:var(--primary); color:white; border:none; border-radius:8px; font-weight:bold; margin-bottom:10px;">📸 온습도계 사진 촬영</button>
+          <input id="photoThermometer" type="file" accept="image/*" style="display:none;" onchange="previewMainPhoto(this, 'photoThermometerLabel')">
+          <label id="photoThermometerLabel" class="photo-btn-label" style="margin-bottom:10px;" onclick="document.getElementById('photoThermometer').click()">
+            📸 온습도계 사진 첨부
+          </label>
+          
           <div id="fieldPhotos"></div>
           <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
         </section>
 
         <section class="card">
           <h2>4) 마무리 기록</h2>
-          <label>고객 요청사항 <textarea id="customerRequest" rows="2" placeholder="전달사항 입력"></textarea></label>
-          <label style="margin-top:10px;">작업자 메모 <textarea id="workMemo" rows="2" placeholder="특이사항"></textarea></label>
+          <label>고객 요청사항 <textarea id="customerRequest" class="auto-save" rows="2" placeholder="전달사항 입력"></textarea></label>
+          <label style="margin-top:10px;">작업자 메모 <textarea id="workMemo" class="auto-save" rows="2" placeholder="특이사항"></textarea></label>
         </section>
       </div>
 
       <div id="settings-tab" class="tab-content" style="display:none;">
         <section class="card">
-          <h2 style="color:var(--primary);">규칙 관리</h2>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="color:var(--primary); margin:0; border:none; padding:0;">규칙 관리</h2>
+            <button id="loadRulesFromServerBtn" type="button" style="background:#10b981; color:white; border:none; border-radius:6px; padding:6px 12px; font-size:0.8rem; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📥 서버에서 불러오기</button>
+          </div>
           <div id="rulesAdminContainer">
             <h3 style="font-size:0.9rem;">기본 규칙</h3><div id="defaultRulesList"></div>
             <button type="button" onclick="addRuleRow('default')" style="width:100%; padding:10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px; color:var(--text-main);">+ 기본 규칙 추가</button>
@@ -170,7 +194,7 @@
             <h3 style="font-size:0.9rem;">이벤트 규칙</h3><div id="eventRulesList"></div>
             <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px; color:var(--text-main);">+ 고객요청 규칙 추가</button>
           </div>
-          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 서버에 규칙 저장</button>
+          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 내 기기의 규칙을 서버에 저장</button>
         </section>
       </div>
     </main>
@@ -190,30 +214,61 @@
     <script>
       const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgkKi6qzWkd4ZBM1xECxtgdO80ynvIaUb5C3YoQQ6z7Ae_qN6hb1WnYXBircD5QThJDw/exec";
       
-      // [리스크팀 조치] 캐시(localStorage) 파싱 오류로 인한 앱 전체 중단을 막기 위한 강력한 예외 처리
       let globalRules = { defaultRules: [], monthlyRules: [], eventRules: [] };
       try {
         const cacheStr = localStorage.getItem('4d_rules_cache');
-        if (cacheStr && cacheStr !== "undefined") {
-          globalRules = JSON.parse(cacheStr);
-        }
-      } catch (e) {
-        console.error("저장된 규칙을 불러오는 중 에러 발생, 기본값으로 초기화합니다.", e);
-      }
+        if (cacheStr && cacheStr !== "undefined") globalRules = JSON.parse(cacheStr);
+      } catch (e) { console.error("규칙 로딩 실패", e); }
 
       let extraPhotoCount = 0;
       let isExpanded = false;
 
+      function saveDraft() {
+        const draft = {
+          workerName: document.getElementById('workerName').value,
+          buildingSelect: document.getElementById('buildingSelect').value,
+          customerRequest: document.getElementById('customerRequest').value,
+          workMemo: document.getElementById('workMemo').value,
+          startHour: document.getElementById('startHour').value,
+          startMin: document.getElementById('startMin').value,
+          interiorTemp: document.getElementById('interiorTemp').value,
+          interiorHumidity: document.getElementById('interiorHumidity').value
+        };
+        localStorage.setItem('4d_draft', JSON.stringify(draft));
+      }
+
+      function loadDraft() {
+        try {
+          const draftStr = localStorage.getItem('4d_draft');
+          if (draftStr) {
+            const draft = JSON.parse(draftStr);
+            Object.keys(draft).forEach(key => {
+              const el = document.getElementById(key);
+              if(el && draft[key]) el.value = draft[key];
+            });
+          }
+        } catch(e) {}
+      }
+
+      function bindAutoSave() {
+        document.querySelectorAll('.auto-save').forEach(el => {
+          el.addEventListener('input', saveDraft);
+          el.addEventListener('change', saveDraft);
+        });
+      }
+
       window.onload = async () => {
         initTimeOptions();
         initSelects();
+        
+        loadDraft(); 
+        bindAutoSave(); 
         
         const todayObj = new Date();
         todayObj.setHours(0,0,0,0);
         const minWeatherDate = new Date(todayObj); minWeatherDate.setDate(todayObj.getDate() - 30);
         const maxWeatherDate = new Date(todayObj); maxWeatherDate.setDate(todayObj.getDate() + 14);
 
-        // [기술/리스크팀 조치] 달력 라이브러리 로딩 실패 시에도 입력창이 멈추지 않도록 Try-Catch 플랜 B 적용
         const wdInput = document.getElementById('workDate');
         try {
           flatpickr("#workDate", { 
@@ -231,16 +286,17 @@
             } 
           });
         } catch (e) {
-          console.error("달력 UI 로딩 실패. 스마트폰 기본 달력으로 자동 전환합니다.", e);
-          wdInput.removeAttribute("readonly"); // 기본 달력을 위해 잠금 해제
-          wdInput.type = "date"; // 플랜 B: 네이티브 달력
+          wdInput.removeAttribute("readonly");
+          wdInput.type = "date";
         }
 
         renderSettingsUI();
         updateChecklist();
         fetchWeather(new Date().toISOString().split('T')[0]);
-        document.getElementById('startHour').value = "06";
-        document.getElementById('startMin').value = "00";
+        if(!document.getElementById('startHour').value) {
+          document.getElementById('startHour').value = "06";
+          document.getElementById('startMin').value = "00";
+        }
         syncEndTime();
 
         const savedTheme = localStorage.getItem('4d_theme') || 'dark';
@@ -256,7 +312,6 @@
         localStorage.setItem('4d_theme', isDark ? 'dark' : 'light');
       };
 
-      // 기상청 조회 (구미시 고정 - 즉시 호출)
       async function fetchWeather(targetDate) {
         const weatherText = document.getElementById('weatherInfoText');
         weatherText.innerText = `📍 ${targetDate} 기상 조회 중...`;
@@ -319,47 +374,119 @@
       function addChecklistItem(text, isDel, isChk) {
         const li = document.createElement('li');
         li.className = "checklist-item";
-        li.innerHTML = `<input type="checkbox" ${isChk ? 'checked' : ''}><span>${text}</span>${isDel ? `<button type="button" class="btn-del-item" onclick="this.parentElement.remove()">삭제</button>` : ''}`;
+        li.innerHTML = `<input type="checkbox" ${isChk ? 'checked' : ''}><span data-task="${text.replace(/\[현장추가\]\s*/, '')}">${text}</span>${isDel ? `<button type="button" class="btn-del-item" onclick="this.parentElement.remove()">삭제</button>` : ''}`;
         document.getElementById('checklistItems').appendChild(li);
       }
+
+      window.checkAllItems = function(isCheck) {
+        document.querySelectorAll('#checklistItems input[type="checkbox"]').forEach(cb => cb.checked = isCheck);
+      };
 
       document.getElementById('addCustomItemBtn').onclick = () => {
         const i = document.getElementById('customItemInput');
         if (i.value.trim()) { 
           const emptyMsg = document.querySelector('#checklistItems li[style*="dashed"]');
           if (emptyMsg) emptyMsg.remove();
-          
           addChecklistItem("[현장추가] " + i.value.trim(), true, true); 
           i.value = ''; 
         }
       };
+
+      // [핵심 변경] 드롭다운(select) 대신 타일형 라디오 버튼(radio) 묶음을 동적 생성
+      function getChecklistButtonsHTML(id) {
+        const items = Array.from(document.querySelectorAll('#checklistItems span[data-task]')).map(span => span.getAttribute('data-task'));
+        let html = `<div class="task-tabs">`;
+        
+        // 체크리스트 항목들을 버튼으로 변환
+        items.forEach((item, index) => {
+          html += `<label>
+                     <input type="radio" name="task_${id}" value="${item}" onchange="handleTaskSelect(${id})" ${index === 0 ? 'checked' : ''}>
+                     <span>${item}</span>
+                   </label>`;
+        });
+        
+        // 돌발 상황을 대비한 '기타입력' 버튼 고정 배치
+        html += `<label>
+                   <input type="radio" name="task_${id}" value="custom" onchange="handleTaskSelect(${id})" ${items.length === 0 ? 'checked' : ''}>
+                   <span>✍️ 기타입력</span>
+                 </label>`;
+        html += `</div>`;
+        return html;
+      }
 
       document.getElementById('addFieldPhotoBtn').onclick = () => {
         extraPhotoCount++;
         const div = document.createElement('div');
         div.className = 'extra-photo-row';
         div.id = `row_extra_${extraPhotoCount}`;
+        
+        // 버튼 묶음 HTML 불러오기
+        const buttonsHTML = getChecklistButtonsHTML(extraPhotoCount);
+
         div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
              <span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">📸 작업 사진 #${extraPhotoCount}</span>
              <button type="button" onclick="document.getElementById('row_extra_${extraPhotoCount}').remove()" style="background:none; border:none; color:var(--danger); font-size:0.75rem; font-weight:bold;">삭제</button>
           </div>
-          <input type="text" id="desc_extra_${extraPhotoCount}" placeholder="사진 설명 입력 (입력해야 버튼 활성화)" oninput="togglePhotoBtn(${extraPhotoCount})">
-          <label id="label_file_extra_${extraPhotoCount}" class="photo-btn-label disabled">
-            사진촬영
-            <input type="file" id="file_extra_${extraPhotoCount}" accept="image/*" capture="environment" style="display:none;" disabled>
+          
+          <!-- Step 1: 청소 항목 원터치 타일 버튼 -->
+          ${buttonsHTML}
+          <input type="text" id="custom_task_${extraPhotoCount}" placeholder="예: 창틀 파손 발견" style="display:none; margin-bottom: 12px; background:var(--bg-main);">
+
+          <!-- Step 2: 작업 상태 탭 (작업전 / 작업중 / 작업후) -->
+          <div class="status-tabs">
+            <label>
+              <input type="radio" name="status_${extraPhotoCount}" value="작업전">
+              <span>작업전</span>
+            </label>
+            <label>
+              <input type="radio" name="status_${extraPhotoCount}" value="작업중" checked>
+              <span>작업중</span>
+            </label>
+            <label>
+              <input type="radio" name="status_${extraPhotoCount}" value="작업후">
+              <span>작업후</span>
+            </label>
+          </div>
+
+          <!-- Step 3: 사진 첨부 버튼 -->
+          <label id="label_file_extra_${extraPhotoCount}" class="photo-btn-label">
+            사진 첨부
+            <input type="file" id="file_extra_${extraPhotoCount}" accept="image/*" style="display:none;" onchange="previewFileName(this, ${extraPhotoCount})">
           </label>
         `;
         document.getElementById('fieldPhotos').appendChild(div);
+        
+        // 생성 직후 상태 한 번 체크 (목록이 비어있어 '기타입력'이 체크된 경우 텍스트창 바로 띄우기)
+        handleTaskSelect(extraPhotoCount);
       };
 
-      window.togglePhotoBtn = function(id) {
-        const input = document.getElementById(`desc_extra_${id}`);
+      // 타일 버튼 선택 시 '기타입력'을 골랐을 때만 텍스트 박스 열기
+      window.handleTaskSelect = function(id) {
+        const checkedRadio = document.querySelector(`input[name="task_${id}"]:checked`);
+        const customInput = document.getElementById(`custom_task_${id}`);
+        if (checkedRadio && checkedRadio.value === 'custom') {
+          customInput.style.display = 'block';
+          customInput.focus();
+        } else {
+          customInput.style.display = 'none';
+        }
+      };
+
+      window.previewMainPhoto = function(input, labelId) {
+        const label = document.getElementById(labelId);
+        if(input.files && input.files[0]) {
+           label.innerHTML = `✅ 온습도계 첨부 완료`;
+           label.style.background = "#10b981";
+        }
+      };
+
+      window.previewFileName = function(input, id) {
         const label = document.getElementById(`label_file_extra_${id}`);
-        const file = document.getElementById(`file_extra_${id}`);
-        const ok = input.value.trim().length > 0;
-        label.classList.toggle('disabled', !ok);
-        file.disabled = !ok;
+        if(input.files && input.files[0]) {
+           label.innerHTML = `✅ 첨부 완료: ${input.files[0].name.substring(0,10)}... <input type="file" id="file_extra_${id}" accept="image/*" style="display:none;" onchange="previewFileName(this, ${id})">`;
+           label.style.background = "#10b981";
+        }
       };
 
       function initTimeOptions() {
@@ -382,6 +509,7 @@
         if (eh > max) eh = max;
         document.getElementById('endHour').value = eh.toString().padStart(2, '0');
         document.getElementById('endMin').value = document.getElementById('startMin').value;
+        saveDraft(); 
       }
 
       document.getElementById('btnExpandTime').onclick = function() {
@@ -424,7 +552,6 @@
           div.innerHTML += `<select class="rule-weekorder" style="margin-bottom:6px;">${['첫째','둘째','셋째','넷째','다섯째'].map(w=>`<option value="${w}" ${data.weekOrder===w?'selected':''}>${w} 주</option>`).join('')}</select>`;
           div.innerHTML += `<select class="rule-weekday" style="margin-bottom:6px;">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
         } else if(type === 'event') { 
-          // 설정 탭 내부 달력에도 플랜 B 에러 방지 처리
           div.innerHTML += `<input type="text" class="rule-date" value="${data.date || ''}" readonly placeholder="날짜 선택" style="margin-bottom:6px; background-color: var(--input-bg); cursor: pointer;">`; 
         }
         div.innerHTML += `<textarea class="rule-tasks" placeholder="항목 입력 (엔터로 줄 구분)" style="height:60px;">${data.tasks || ''}</textarea>`;
@@ -462,6 +589,32 @@
         finally { overlay.style.display = 'none'; }
       };
 
+      document.getElementById('loadRulesFromServerBtn').onclick = async () => {
+        const overlay = document.getElementById('loadingOverlay'); 
+        overlay.style.display = 'flex';
+        document.getElementById('loadingTitle').innerText = "서버 데이터 수신 중";
+        document.getElementById('progressStatus').innerText = "규칙 목록을 다운로드합니다...";
+        
+        try {
+          const res = await fetch(APP_SCRIPT_URL, { method:'POST', body: JSON.stringify({action:"GET_RULES"}) });
+          const json = await res.json();
+          if (json.status === "success" && json.data) {
+             globalRules = json.data;
+             localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules));
+             renderSettingsUI();
+             updateChecklist();
+             alert("📥 서버 규칙을 성공적으로 불러왔습니다!");
+          } else {
+             alert("서버에 저장된 규칙이 없습니다.");
+          }
+        } catch (e) { 
+          alert("❌ 불러오기 실패: 구글 서버 CORS 권한 문제일 수 있습니다."); 
+        } finally { 
+          overlay.style.display = 'none'; 
+          document.getElementById('loadingTitle').innerText = "데이터 전송 시작";
+        }
+      };
+
       function switchTab(t) {
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -493,7 +646,7 @@
         const checklistItems = Array.from(document.querySelectorAll('#checklistItems li')).map(li => ({ item: li.querySelector('span').innerText, checked: li.querySelector('input').checked ? "O" : "X" }));
         
         if (checklistItems.length === 0) {
-          alert("⚠️ 청소내역을 추가해 주세요.\n(등록된 규칙이 없으면 '현장 추가 항목'에 내용을 적고 추가 버튼을 눌러주세요)");
+          alert("⚠️ 청소내역을 추가해 주세요.");
           return;
         }
 
@@ -536,16 +689,40 @@
             updateProgress("로컬 최적화 중...", `[${doneF}/${totF}] 온습도계 사진 압축`, "고화질(1MB)을 유지하며 압축합니다.", 20 + (doneF/totF*30));
             payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await compressImage(thF) }); 
           }
+          
           for(let r of exPRs) { 
-            doneF++; 
-            updateProgress("로컬 최적화 중...", `[${doneF}/${totF}] 작업 사진 압축`, "고화질(1MB)을 유지하며 압축합니다.", 20 + (doneF/totF*30));
-            payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_작업사진${doneF}.JPG`, data: await compressImage(r.querySelector('input[type="file"]').files[0]) }); 
+            const fileInput = r.querySelector('input[type="file"]');
+            if(fileInput && fileInput.files[0]) {
+              doneF++; 
+              
+              // [핵심 변경] 타일 버튼 배열에서 선택된 값 추출
+              const rowId = r.id.split('_')[2];
+              const taskRadio = r.querySelector(`input[name="task_${rowId}"]:checked`);
+              let taskName = taskRadio ? taskRadio.value : "";
+              
+              if (taskName === 'custom') {
+                taskName = r.querySelector(`#custom_task_${rowId}`).value.trim();
+              }
+              if (!taskName) taskName = `작업사진${doneF}`; // 아무것도 선택 안했을 경우
+
+              const statusRadio = r.querySelector(`input[name="status_${rowId}"]:checked`);
+              const statusName = statusRadio ? statusRadio.value : "작업상태불명";
+
+              // 최종 파일명 조합: 20260411_외벽청소_작업전.JPG
+              const finalPhotoDesc = `${taskName}_${statusName}`.replace(/\s+/g,'_');
+              
+              updateProgress("로컬 최적화 중...", `[${doneF}/${totF}] '${finalPhotoDesc}' 사진 압축`, "고화질(1MB)을 유지하며 압축합니다.", 20 + (doneF/totF*30));
+              payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${finalPhotoDesc}.JPG`, data: await compressImage(fileInput.files[0]) }); 
+            }
           }
 
           updateProgress("서버 전송 중...", "구글 클라우드 연결", "압축된 데이터를 전송하고 있습니다.", 60);
           await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
           
           updateProgress("기록 완료!", "모든 데이터 전송 완료", "일지가 안전하게 저장되었습니다.", 100);
+          
+          localStorage.removeItem('4d_draft');
+          
           setTimeout(() => { alert("✅ 일지 전송 성공!"); location.reload(); }, 500);
         } catch (e) { alert("❌ 에러: " + e.message); overlay.style.display = 'none'; }
       };
