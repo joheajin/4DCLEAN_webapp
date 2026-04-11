@@ -11,6 +11,7 @@
       :root {
         --primary: #6366f1;
         --primary-dark: #4f46e5;
+        --secondary: #8b5cf6; /* 규칙 저장 버튼용 보라색 추가 */
         --danger: #ef4444;
         --bg-main: #f8fafc;
         --bg-container: #ffffff;
@@ -61,26 +62,26 @@
       .btn-expand { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 5px; font-size: 0.75rem; width: 100%; margin-top: 8px; cursor: pointer; }
       .weather-badge { font-size: 0.8rem; color: #fff; margin-bottom: 12px; background: var(--primary); padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: bold; }
       .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; }
-      .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+      
+      /* 촬영/첨부 버튼 공통 클래스 */
+      .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; }
+      .photo-btn-label-alt { background: var(--text-muted); } /* 첨부(갤러리)용 버튼 색상 */
 
-      /* ==========================================
-         [신규 추가] 청소 항목 선택 타일형 버튼 스타일
-      ========================================== */
+      /* 청소 항목 타일 버튼 */
       .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
       .task-tabs label { flex: 1 1 calc(50% - 6px); min-width: 130px; text-align: center; margin: 0; cursor: pointer; }
       .task-tabs input[type="radio"] { display: none; }
       .task-tabs span { display: flex; align-items: center; justify-content: center; padding: 12px 6px; font-size: 0.85rem; font-weight: bold; color: var(--text-main); background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; word-break: keep-all; height: 100%; box-sizing: border-box; }
       .task-tabs input[type="radio"]:checked + span { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-      /* ==========================================
-         작업 상태 탭(Segmented Control) 스타일
-      ========================================== */
+      /* [수정] 작업 상태 탭 4분할 (폰트 크기 및 패딩 조정으로 한 줄 유지) */
       .status-tabs { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; }
       .status-tabs label { flex: 1; text-align: center; margin: 0; cursor: pointer; }
       .status-tabs input[type="radio"] { display: none; }
-      .status-tabs span { display: block; padding: 8px 4px; font-size: 0.85rem; font-weight: bold; color: var(--text-muted); border-radius: 6px; transition: all 0.2s ease; }
+      .status-tabs span { display: block; padding: 8px 0; font-size: 0.75rem; letter-spacing: -0.5px; font-weight: bold; color: var(--text-muted); border-radius: 6px; transition: all 0.2s ease; white-space: nowrap; }
       .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
+      /* 다크모드 달력 패치 */
       .dark-mode .flatpickr-calendar { background: #1e293b !important; border: 1px solid #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important; }
       .dark-mode span.flatpickr-day { color: #ffffff !important; }
       .dark-mode span.flatpickr-day.flatpickr-disabled, 
@@ -94,11 +95,8 @@
       .dark-mode .flatpickr-months .flatpickr-prev-month,
       .dark-mode .flatpickr-months .flatpickr-next-month { color: #ffffff !important; fill: #ffffff !important; }
       .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months option { background: #1e293b !important; color: #ffffff !important; }
-
-      html body span.flatpickr-day.weather-available,
-      html body.dark-mode span.flatpickr-day.weather-available { color: var(--weather-available) !important; font-weight: 900 !important; text-shadow: none !important; }
-      html body span.flatpickr-day.selected.weather-available,
-      html body.dark-mode span.flatpickr-day.selected.weather-available { color: #1e293b !important; background: var(--weather-available) !important; border-color: var(--weather-available) !important; }
+      html body span.flatpickr-day.weather-available, html body.dark-mode span.flatpickr-day.weather-available { color: var(--weather-available) !important; font-weight: 900 !important; text-shadow: none !important; }
+      html body span.flatpickr-day.selected.weather-available, html body.dark-mode span.flatpickr-day.selected.weather-available { color: #1e293b !important; background: var(--weather-available) !important; border-color: var(--weather-available) !important; }
     </style>
   </head>
   <body class="dark-mode">
@@ -143,18 +141,19 @@
           <button type="button" id="btnExpandTime" class="btn-expand">시간 확장 (00~23시)</button>
         </section>
 
+        <!-- [수정 1] 제목 간소화 및 전체선택 버튼 명칭 압축 적용 -->
         <section class="card">
           <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
-            <h2 style="border:none; margin:0; padding:0;">2) 오늘의 청소 체크리스트</h2>
-            <div style="display:flex; gap:4px;">
-              <button type="button" onclick="checkAllItems(true)" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.7rem; font-weight:bold;">모두 체크</button>
-              <button type="button" onclick="checkAllItems(false)" style="background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:4px; padding:4px 8px; font-size:0.7rem;">모두 해제</button>
+            <h2 style="border:none; margin:0; padding:0; font-size:1rem; white-space:nowrap;">2) 청소 체크</h2>
+            <div style="display:flex; gap:4px; flex-shrink:0;">
+              <button type="button" onclick="checkAllItems(true)" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:6px 10px; font-size:0.75rem; font-weight:bold; white-space:nowrap;">전체선택</button>
+              <button type="button" onclick="checkAllItems(false)" style="background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:4px; padding:6px 10px; font-size:0.75rem; white-space:nowrap;">전체해제</button>
             </div>
           </div>
           <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
           <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
             <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
-            <button id="addCustomItemBtn" type="button" style="background:var(--primary); color:white; border:none; padding:0 15px; height: 42px; border-radius:6px; font-weight:bold;">추가</button>
+            <button id="addCustomItemBtn" type="button" style="background:var(--primary); color:white; border:none; padding:0 15px; height: 42px; border-radius:6px; font-weight:bold; flex-shrink:0;">추가</button>
           </div>
         </section>
 
@@ -164,10 +163,16 @@
              <label>내부 온도 <select id="interiorTemp" class="auto-save"></select></label>
              <label>내부 습도 <select id="interiorHumidity" class="auto-save"></select></label>
           </div>
-          <input id="photoThermometer" type="file" accept="image/*" style="display:none;" onchange="previewMainPhoto(this, 'photoThermometerLabel')">
-          <label id="photoThermometerLabel" class="photo-btn-label" style="margin-bottom:10px;" onclick="document.getElementById('photoThermometer').click()">
-            📸 온습도계 사진 첨부
-          </label>
+          
+          <!-- [수정 2] 온습도계 듀얼 버튼(촬영/첨부) 적용 -->
+          <div style="display:flex; gap:8px; margin-bottom:6px;">
+            <input id="photoThermometerCam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="previewMainPhoto(this, 'photoThermometerStatus')">
+            <label class="photo-btn-label" style="flex:1; margin:0;" onclick="document.getElementById('photoThermometerCam').click()">📸 온습도 촬영</label>
+            
+            <input id="photoThermometerGal" type="file" accept="image/*" style="display:none;" onchange="previewMainPhoto(this, 'photoThermometerStatus')">
+            <label class="photo-btn-label photo-btn-label-alt" style="flex:1; margin:0;" onclick="document.getElementById('photoThermometerGal').click()">🖼️ 온습도 첨부</label>
+          </div>
+          <div id="photoThermometerStatus" style="font-size:0.8rem; text-align:center; color:var(--text-muted); margin-bottom:15px; min-height: 16px;"></div>
           
           <div id="fieldPhotos"></div>
           <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
@@ -194,12 +199,14 @@
             <h3 style="font-size:0.9rem;">이벤트 규칙</h3><div id="eventRulesList"></div>
             <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px; color:var(--text-main);">+ 고객요청 규칙 추가</button>
           </div>
-          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--primary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 내 기기의 규칙을 서버에 저장</button>
+          <!-- [수정 3] 버튼 텍스트 단축 및 보라색(Secondary) 색상으로 완벽히 분리 -->
+          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--secondary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 규칙 서버 저장</button>
         </section>
       </div>
     </main>
 
     <div class="bottom-fixed-bar">
+      <!-- 메인 전송 버튼은 프라이머리 컬러 유지 -->
       <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 서버 전송</button>
     </div>
 
@@ -392,12 +399,10 @@
         }
       };
 
-      // [핵심 변경] 드롭다운(select) 대신 타일형 라디오 버튼(radio) 묶음을 동적 생성
       function getChecklistButtonsHTML(id) {
         const items = Array.from(document.querySelectorAll('#checklistItems span[data-task]')).map(span => span.getAttribute('data-task'));
         let html = `<div class="task-tabs">`;
         
-        // 체크리스트 항목들을 버튼으로 변환
         items.forEach((item, index) => {
           html += `<label>
                      <input type="radio" name="task_${id}" value="${item}" onchange="handleTaskSelect(${id})" ${index === 0 ? 'checked' : ''}>
@@ -405,7 +410,6 @@
                    </label>`;
         });
         
-        // 돌발 상황을 대비한 '기타입력' 버튼 고정 배치
         html += `<label>
                    <input type="radio" name="task_${id}" value="custom" onchange="handleTaskSelect(${id})" ${items.length === 0 ? 'checked' : ''}>
                    <span>✍️ 기타입력</span>
@@ -420,7 +424,6 @@
         div.className = 'extra-photo-row';
         div.id = `row_extra_${extraPhotoCount}`;
         
-        // 버튼 묶음 HTML 불러오기
         const buttonsHTML = getChecklistButtonsHTML(extraPhotoCount);
 
         div.innerHTML = `
@@ -429,39 +432,33 @@
              <button type="button" onclick="document.getElementById('row_extra_${extraPhotoCount}').remove()" style="background:none; border:none; color:var(--danger); font-size:0.75rem; font-weight:bold;">삭제</button>
           </div>
           
-          <!-- Step 1: 청소 항목 원터치 타일 버튼 -->
+          <!-- Step 1: 청소 항목 타일 버튼 -->
           ${buttonsHTML}
           <input type="text" id="custom_task_${extraPhotoCount}" placeholder="예: 창틀 파손 발견" style="display:none; margin-bottom: 12px; background:var(--bg-main);">
 
-          <!-- Step 2: 작업 상태 탭 (작업전 / 작업중 / 작업후) -->
+          <!-- [수정 2] Step 2: 작업 상태 탭 4분할 적용 -->
           <div class="status-tabs">
-            <label>
-              <input type="radio" name="status_${extraPhotoCount}" value="작업전">
-              <span>작업전</span>
-            </label>
-            <label>
-              <input type="radio" name="status_${extraPhotoCount}" value="작업중" checked>
-              <span>작업중</span>
-            </label>
-            <label>
-              <input type="radio" name="status_${extraPhotoCount}" value="작업후">
-              <span>작업후</span>
-            </label>
+            <label><input type="radio" name="status_${extraPhotoCount}" value="작업전"><span>작업전</span></label>
+            <label><input type="radio" name="status_${extraPhotoCount}" value="작업중" checked><span>작업중</span></label>
+            <label><input type="radio" name="status_${extraPhotoCount}" value="작업후"><span>작업후</span></label>
+            <label><input type="radio" name="status_${extraPhotoCount}" value="현장사진"><span>현장사진</span></label>
           </div>
 
-          <!-- Step 3: 사진 첨부 버튼 -->
-          <label id="label_file_extra_${extraPhotoCount}" class="photo-btn-label">
-            사진 첨부
-            <input type="file" id="file_extra_${extraPhotoCount}" accept="image/*" style="display:none;" onchange="previewFileName(this, ${extraPhotoCount})">
-          </label>
+          <!-- [수정 2] Step 3: 촬영/첨부 듀얼 버튼 적용 -->
+          <div style="display:flex; gap:8px;">
+            <input type="file" id="file_extra_cam_${extraPhotoCount}" accept="image/*" capture="environment" style="display:none;" onchange="previewFileName(this, ${extraPhotoCount})">
+            <label class="photo-btn-label" style="flex:1; margin:0;" onclick="document.getElementById('file_extra_cam_${extraPhotoCount}').click()">📸 촬영</label>
+            
+            <input type="file" id="file_extra_gal_${extraPhotoCount}" accept="image/*" style="display:none;" onchange="previewFileName(this, ${extraPhotoCount})">
+            <label class="photo-btn-label photo-btn-label-alt" style="flex:1; margin:0;" onclick="document.getElementById('file_extra_gal_${extraPhotoCount}').click()">🖼️ 첨부</label>
+          </div>
+          <div id="status_file_extra_${extraPhotoCount}" style="font-size:0.8rem; text-align:center; color:var(--text-muted); margin-top:6px; min-height: 16px;"></div>
         `;
         document.getElementById('fieldPhotos').appendChild(div);
         
-        // 생성 직후 상태 한 번 체크 (목록이 비어있어 '기타입력'이 체크된 경우 텍스트창 바로 띄우기)
         handleTaskSelect(extraPhotoCount);
       };
 
-      // 타일 버튼 선택 시 '기타입력'을 골랐을 때만 텍스트 박스 열기
       window.handleTaskSelect = function(id) {
         const checkedRadio = document.querySelector(`input[name="task_${id}"]:checked`);
         const customInput = document.getElementById(`custom_task_${id}`);
@@ -473,19 +470,29 @@
         }
       };
 
+      // 온습도계 사진 상태 표시 갱신 및 중복 제거
       window.previewMainPhoto = function(input, labelId) {
-        const label = document.getElementById(labelId);
+        const statusDiv = document.getElementById(labelId);
         if(input.files && input.files[0]) {
-           label.innerHTML = `✅ 온습도계 첨부 완료`;
-           label.style.background = "#10b981";
+           statusDiv.innerHTML = `✅ 첨부 완료: ${input.files[0].name.substring(0,12)}...`;
+           statusDiv.style.color = "#10b981";
+           statusDiv.style.fontWeight = "bold";
+           // 카메라/갤러리 중 하나를 고르면 다른 쪽 파일 입력값을 초기화하여 충돌 방지
+           if(input.id === 'photoThermometerCam') document.getElementById('photoThermometerGal').value = "";
+           else document.getElementById('photoThermometerCam').value = "";
         }
       };
 
+      // 작업 사진 상태 표시 갱신 및 중복 제거
       window.previewFileName = function(input, id) {
-        const label = document.getElementById(`label_file_extra_${id}`);
+        const statusDiv = document.getElementById(`status_file_extra_${id}`);
         if(input.files && input.files[0]) {
-           label.innerHTML = `✅ 첨부 완료: ${input.files[0].name.substring(0,10)}... <input type="file" id="file_extra_${id}" accept="image/*" style="display:none;" onchange="previewFileName(this, ${id})">`;
-           label.style.background = "#10b981";
+           statusDiv.innerHTML = `✅ 첨부 완료: ${input.files[0].name.substring(0,12)}...`;
+           statusDiv.style.color = "#10b981";
+           statusDiv.style.fontWeight = "bold";
+           // 카메라/갤러리 충돌 방지
+           if(input.id.includes('_cam_')) document.getElementById(`file_extra_gal_${id}`).value = "";
+           else document.getElementById(`file_extra_cam_${id}`).value = "";
         }
       };
 
@@ -679,8 +686,13 @@
             photos: []
           };
 
-          const thF = document.getElementById('photoThermometer').files[0];
-          const exPRs = Array.from(document.querySelectorAll('.extra-photo-row')).filter(r => r.querySelector('input[type="file"]').files[0]);
+          // 카메라/갤러리 중 선택된 파일을 가져옴
+          const thF = document.getElementById('photoThermometerCam').files[0] || document.getElementById('photoThermometerGal').files[0];
+          
+          // 사진 컴포넌트들을 스캔
+          const exPRs = Array.from(document.querySelectorAll('.extra-photo-row')).filter(r => {
+             return r.querySelector('input[id^="file_extra_cam_"]').files[0] || r.querySelector('input[id^="file_extra_gal_"]').files[0];
+          });
           const totF = (thF ? 1 : 0) + exPRs.length;
           let doneF = 0;
 
@@ -691,11 +703,10 @@
           }
           
           for(let r of exPRs) { 
-            const fileInput = r.querySelector('input[type="file"]');
-            if(fileInput && fileInput.files[0]) {
+            const actualFile = r.querySelector('input[id^="file_extra_cam_"]').files[0] || r.querySelector('input[id^="file_extra_gal_"]').files[0];
+            
+            if(actualFile) {
               doneF++; 
-              
-              // [핵심 변경] 타일 버튼 배열에서 선택된 값 추출
               const rowId = r.id.split('_')[2];
               const taskRadio = r.querySelector(`input[name="task_${rowId}"]:checked`);
               let taskName = taskRadio ? taskRadio.value : "";
@@ -703,16 +714,15 @@
               if (taskName === 'custom') {
                 taskName = r.querySelector(`#custom_task_${rowId}`).value.trim();
               }
-              if (!taskName) taskName = `작업사진${doneF}`; // 아무것도 선택 안했을 경우
+              if (!taskName) taskName = `작업사진${doneF}`; 
 
               const statusRadio = r.querySelector(`input[name="status_${rowId}"]:checked`);
               const statusName = statusRadio ? statusRadio.value : "작업상태불명";
 
-              // 최종 파일명 조합: 20260411_외벽청소_작업전.JPG
               const finalPhotoDesc = `${taskName}_${statusName}`.replace(/\s+/g,'_');
               
               updateProgress("로컬 최적화 중...", `[${doneF}/${totF}] '${finalPhotoDesc}' 사진 압축`, "고화질(1MB)을 유지하며 압축합니다.", 20 + (doneF/totF*30));
-              payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${finalPhotoDesc}.JPG`, data: await compressImage(fileInput.files[0]) }); 
+              payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${finalPhotoDesc}.JPG`, data: await compressImage(actualFile) }); 
             }
           }
 
