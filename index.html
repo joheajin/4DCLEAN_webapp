@@ -9,27 +9,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flatpickr/4.6.13/l10n/ko.min.js"></script>
     <style>
       :root {
-        --primary: #6366f1;
-        --primary-dark: #4f46e5;
-        --secondary: #8b5cf6; /* 규칙 저장 버튼용 보라색 추가 */
-        --danger: #ef4444;
-        --bg-main: #f8fafc;
-        --bg-container: #ffffff;
-        --bg-card: #f1f5f9;
-        --text-main: #1e293b;
-        --text-muted: #64748b;
-        --border-color: #e2e8f0;
-        --input-bg: #ffffff;
-        --weather-available: #facc15; 
+        --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #8b5cf6; 
+        --danger: #ef4444; --success: #10b981; --bg-main: #f8fafc;
+        --bg-container: #ffffff; --bg-card: #f1f5f9; --text-main: #1e293b;
+        --text-muted: #64748b; --border-color: #e2e8f0; --input-bg: #ffffff;
       }
       body.dark-mode {
-        --bg-main: #0f172a;
-        --bg-container: #1e293b;
-        --bg-card: #334155;
-        --text-main: #f1f5f9;
-        --text-muted: #94a3b8;
-        --border-color: #475569;
-        --input-bg: #1e293b;
+        --bg-main: #0f172a; --bg-container: #1e293b; --bg-card: #334155;
+        --text-main: #f1f5f9; --text-muted: #cbd5e1; --border-color: #475569; --input-bg: #1e293b;
       }
       body { font-family: sans-serif; background: var(--bg-main); margin: 0; padding: 10px; padding-bottom: 80px; color: var(--text-main); transition: all 0.3s ease; }
       .container { max-width: 600px; margin: 0 auto; background: var(--bg-container); padding: 15px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -38,72 +25,41 @@
       .tab-btn.active { background: var(--primary); color: white; }
       .card { border: 1px solid var(--border-color); padding: 15px; border-radius: 8px; margin-bottom: 20px; background: var(--bg-container); }
       .card h2 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; }
+      body.dark-mode .card h2 { color: #ffffff; border-bottom-color: #475569; }
       label { display: block; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); margin-bottom: 4px; }
+      body.dark-mode label { color: #ffffff; }
       input, select, textarea { width: 100%; padding: 10px 8px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--input-bg); color: var(--text-main); margin-top: 4px; box-sizing: border-box; font-size: 0.95rem; }
-      input[readonly] { cursor: pointer; background-color: var(--input-bg) !important; }
-      
-      .time-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-      .time-box { background: var(--bg-card); padding: 10px 8px; border-radius: 8px; border: 1px solid var(--border-color); }
-      .time-box select { flex: 1; padding: 8px 4px; font-size: 0.85rem; min-width: 0; text-align: center; }
       .bottom-fixed-bar { position: fixed; bottom: 0; left: 0; right: 0; padding: 15px 20px; background: var(--bg-container); border-top: 1px solid var(--border-color); display: flex; justify-content: center; z-index: 100; }
       .save-work-btn-large { width: 100%; max-width: 600px; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
-      
-      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
-      .progress-container { width: 85%; max-width: 350px; background: #334155; height: 12px; border-radius: 6px; margin-top: 25px; overflow: hidden; }
-      .progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), #818cf8); transition: width 0.4s ease; border-radius: 6px; }
-      .spinner { width: 50px; height: 50px; border: 5px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-      .detail-log { font-size: 0.8rem; color: #94a3b8; margin-top: 8px; text-align: center; }
-      
       .checklist-item { display: flex; align-items: center; gap: 10px; background: var(--bg-card); padding: 10px; border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border-color); }
       .checklist-item input[type="checkbox"] { width: 22px; height: 22px; flex-shrink: 0; }
       .checklist-item span { flex: 1; font-size: 0.9rem; }
-      .btn-del-item { color: var(--danger); background: none; border: 1px solid var(--danger); padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; }
-      .btn-expand { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 8px; border-radius: 5px; font-size: 0.75rem; width: 100%; margin-top: 8px; cursor: pointer; }
-      .weather-badge { font-size: 0.8rem; color: #fff; margin-bottom: 12px; background: var(--primary); padding: 6px 12px; border-radius: 6px; display: inline-block; font-weight: bold; }
-      .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; }
-      
-      /* 촬영/첨부 버튼 공통 클래스 */
-      .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; }
-      .photo-btn-label-alt { background: var(--text-muted); } /* 첨부(갤러리)용 버튼 색상 */
-
-      /* 청소 항목 타일 버튼 */
+      .extra-photo-row { background: var(--bg-card); padding: 12px; border-radius: 10px; border: 1px dashed var(--border-color); margin-bottom: 10px; position: relative; }
+      .upload-status { font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+      .status-wait { background: #e2e8f0; color: #64748b; }
+      .status-loading { background: #fef3c7; color: #d97706; animation: pulse 1s infinite; }
+      .status-done { background: #d1fae5; color: #059669; }
+      @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
       .task-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-      .task-tabs label { flex: 1 1 calc(50% - 6px); min-width: 130px; text-align: center; margin: 0; cursor: pointer; }
+      .task-tabs label { flex: 1 1 calc(50% - 6px); min-width: 130px; text-align: center; cursor: pointer; }
       .task-tabs input[type="radio"] { display: none; }
-      .task-tabs span { display: flex; align-items: center; justify-content: center; padding: 12px 6px; font-size: 0.85rem; font-weight: bold; color: var(--text-main); background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; word-break: keep-all; height: 100%; box-sizing: border-box; }
-      .task-tabs input[type="radio"]:checked + span { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-      /* [수정] 작업 상태 탭 4분할 (폰트 크기 및 패딩 조정으로 한 줄 유지) */
+      .task-tabs span { display: flex; align-items: center; justify-content: center; padding: 10px 6px; font-size: 0.8rem; font-weight: bold; color: var(--text-main); background: var(--bg-container); border: 1px solid var(--border-color); border-radius: 8px; }
+      .task-tabs input[type="radio"]:checked + span { background: var(--success); color: white; border-color: var(--success); }
       .status-tabs { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; }
-      .status-tabs label { flex: 1; text-align: center; margin: 0; cursor: pointer; }
+      .status-tabs label { flex: 1; text-align: center; cursor: pointer; }
       .status-tabs input[type="radio"] { display: none; }
-      .status-tabs span { display: block; padding: 8px 0; font-size: 0.75rem; letter-spacing: -0.5px; font-weight: bold; color: var(--text-muted); border-radius: 6px; transition: all 0.2s ease; white-space: nowrap; }
-      .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-      /* 다크모드 달력 패치 */
-      .dark-mode .flatpickr-calendar { background: #1e293b !important; border: 1px solid #475569 !important; box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important; }
-      .dark-mode span.flatpickr-day { color: #ffffff !important; }
-      .dark-mode span.flatpickr-day.flatpickr-disabled, 
-      .dark-mode span.flatpickr-day.prevMonthDay, 
-      .dark-mode span.flatpickr-day.nextMonthDay { color: #64748b !important; }
-      .dark-mode .flatpickr-months .flatpickr-month,
-      .dark-mode .flatpickr-current-month,
-      .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months,
-      .dark-mode .flatpickr-current-month input.cur-year,
-      .dark-mode span.flatpickr-weekday,
-      .dark-mode .flatpickr-months .flatpickr-prev-month,
-      .dark-mode .flatpickr-months .flatpickr-next-month { color: #ffffff !important; fill: #ffffff !important; }
-      .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months option { background: #1e293b !important; color: #ffffff !important; }
-      html body span.flatpickr-day.weather-available, html body.dark-mode span.flatpickr-day.weather-available { color: var(--weather-available) !important; font-weight: 900 !important; text-shadow: none !important; }
-      html body span.flatpickr-day.selected.weather-available, html body.dark-mode span.flatpickr-day.selected.weather-available { color: #1e293b !important; background: var(--weather-available) !important; border-color: var(--weather-available) !important; }
+      .status-tabs span { display: block; padding: 8px 0; font-size: 0.75rem; font-weight: bold; color: var(--text-muted); border-radius: 6px; }
+      .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; }
+      .photo-btn-label { display: block; width: 100%; padding: 12px; background: var(--primary); color: white; text-align: center; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 0.9rem; }
+      .photo-btn-label-alt { background: var(--text-muted); }
+      .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
     </style>
   </head>
   <body class="dark-mode">
     <main class="container">
       <div class="app-header">
-        <h1 style="font-size: 1.3rem; margin:0;">4D클린 현장 일지</h1>
-        <button id="themeToggleBtn" type="button" style="background:none; border:none; font-size: 1.5rem; cursor:pointer;">☀️</button>
+        <h1 style="font-size: 1.2rem; margin:0;">4D클린 현장 실시간 일지</h1>
+        <button id="themeToggleBtn" type="button" style="background:none; border:none; font-size: 1.2rem; cursor:pointer;">☀️</button>
       </div>
 
       <div class="tabs" style="display:flex; gap:8px; margin-bottom:15px;">
@@ -113,523 +69,95 @@
 
       <div id="main-tab" class="tab-content active">
         <section class="card">
-          <h2>1) 작업 기본 정보</h2>
-          <div id="weatherInfoText" class="weather-badge">📍 날씨 데이터 연동 중...</div>
-          <div style="font-size: 10px; color: var(--weather-available); margin-bottom: 10px; font-weight: bold;">* 노란색 날짜: 과거/미래 날씨 조회가 가능한 날</div>
+          <h2>1) 기본 정보</h2>
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택" readonly></label>
-            <label>현장 작업자 <select id="workerName" class="auto-save"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
+            <label>날짜 <input id="workDate" type="text" readonly></label>
+            <label>작업자 <select id="workerName" class="auto-save"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
-          <label style="margin-top:10px;">대상 건물 <select id="buildingSelect" class="auto-save" onchange="updateChecklist()"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
-          
-          <div class="time-select-grid">
-            <div class="time-box">
-              <label>시작 시간</label>
-              <div style="display:flex; gap:4px; margin-top:5px;">
-                <select id="startHour" class="auto-save" onchange="syncEndTime()"></select>
-                <select id="startMin" class="auto-save" onchange="syncEndTime()"><option value="00">00분</option><option value="30">30분</option></select>
-              </div>
-            </div>
-            <div class="time-box">
-              <label>종료 시간</label>
-              <div style="display:flex; gap:4px; margin-top:5px;">
-                <select id="endHour" class="auto-save"></select>
-                <select id="endMin" class="auto-save"><option value="00">00분</option><option value="30">30분</option></select>
-              </div>
-            </div>
-          </div>
-          <button type="button" id="btnExpandTime" class="btn-expand">시간 확장 (00~23시)</button>
-        </section>
-
-        <!-- [수정 1] 제목 간소화 및 전체선택 버튼 명칭 압축 적용 -->
-        <section class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px;">
-            <h2 style="border:none; margin:0; padding:0; font-size:1rem; white-space:nowrap;">2) 청소 체크</h2>
-            <div style="display:flex; gap:4px; flex-shrink:0;">
-              <button type="button" onclick="checkAllItems(true)" style="background:var(--primary); color:white; border:none; border-radius:4px; padding:6px 10px; font-size:0.75rem; font-weight:bold; white-space:nowrap;">전체선택</button>
-              <button type="button" onclick="checkAllItems(false)" style="background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-color); border-radius:4px; padding:6px 10px; font-size:0.75rem; white-space:nowrap;">전체해제</button>
-            </div>
-          </div>
-          <ul id="checklistItems" style="list-style:none; padding:0;"></ul>
-          <div style="display:flex; gap:6px; margin-top:10px; align-items: center;">
-            <input type="text" id="customItemInput" placeholder="현장 추가 항목" style="margin:0; flex: 1; min-width: 0;">
-            <button id="addCustomItemBtn" type="button" style="background:var(--primary); color:white; border:none; padding:0 15px; height: 42px; border-radius:6px; font-weight:bold; flex-shrink:0;">추가</button>
-          </div>
+          <label style="margin-top:10px;">현장 <select id="buildingSelect" class="auto-save"><option value="백산빌딩">백산빌딩</option><option value="효성빌딩">효성빌딩</option></select></label>
         </section>
 
         <section class="card">
-          <h2>3) 사진 및 환경 데이터</h2>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
-             <label>내부 온도 <select id="interiorTemp" class="auto-save"></select></label>
-             <label>내부 습도 <select id="interiorHumidity" class="auto-save"></select></label>
+          <h2>2) 청소 체크</h2>
+          <ul id="checklistItems" style="list-style:none; padding:0;">
+             <li class="checklist-item"><input type="checkbox"> <span>1층 로비 청소</span></li>
+             <li class="checklist-item"><input type="checkbox"> <span>엘리베이터 살균</span></li>
+          </ul>
+        </section>
+
+        <section class="card">
+          <h2>3) 사진 (선택 시 실시간 전송)</h2>
+          <div id="photoThermometerBox" class="extra-photo-row" style="border-style: solid; border-color: var(--primary);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <span style="font-size:0.8rem; font-weight:bold;">🌡️ 온습도계 사진</span>
+                <span id="status_thermometer" class="upload-status status-wait">대기</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <input id="file_thermometer_cam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="uploadImmediately(this, 'thermometer')">
+                <label class="photo-btn-label" style="flex:1;" onclick="document.getElementById('file_thermometer_cam').click()">📸 촬영</label>
+                <input id="file_thermometer_gal" type="file" accept="image/*" style="display:none;" onchange="uploadImmediately(this, 'thermometer')">
+                <label class="photo-btn-label photo-btn-label-alt" style="flex:1;" onclick="document.getElementById('file_thermometer_gal').click()">🖼️ 첨부</label>
+            </div>
           </div>
-          
-          <!-- [수정 2] 온습도계 듀얼 버튼(촬영/첨부) 적용 -->
-          <div style="display:flex; gap:8px; margin-bottom:6px;">
-            <input id="photoThermometerCam" type="file" accept="image/*" capture="environment" style="display:none;" onchange="previewMainPhoto(this, 'photoThermometerStatus')">
-            <label class="photo-btn-label" style="flex:1; margin:0;" onclick="document.getElementById('photoThermometerCam').click()">📸 온습도 촬영</label>
-            
-            <input id="photoThermometerGal" type="file" accept="image/*" style="display:none;" onchange="previewMainPhoto(this, 'photoThermometerStatus')">
-            <label class="photo-btn-label photo-btn-label-alt" style="flex:1; margin:0;" onclick="document.getElementById('photoThermometerGal').click()">🖼️ 온습도 첨부</label>
-          </div>
-          <div id="photoThermometerStatus" style="font-size:0.8rem; text-align:center; color:var(--text-muted); margin-bottom:15px; min-height: 16px;"></div>
-          
           <div id="fieldPhotos"></div>
-          <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:12px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
+          <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:15px; background:var(--success); color:white; border:none; border-radius:8px; font-weight:bold; margin-top:10px;">+ 작업 사진 추가</button>
         </section>
 
         <section class="card">
-          <h2>4) 마무리 기록</h2>
-          <label>고객 요청사항 <textarea id="customerRequest" class="auto-save" rows="2" placeholder="전달사항 입력"></textarea></label>
-          <label style="margin-top:10px;">작업자 메모 <textarea id="workMemo" class="auto-save" rows="2" placeholder="특이사항"></textarea></label>
+          <h2>4) 메모</h2>
+          <textarea id="workMemo" class="auto-save" rows="3" placeholder="특이사항을 입력하세요."></textarea>
         </section>
       </div>
 
       <div id="settings-tab" class="tab-content" style="display:none;">
-        <section class="card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="color:var(--primary); margin:0; border:none; padding:0;">규칙 관리</h2>
-            <button id="loadRulesFromServerBtn" type="button" style="background:#10b981; color:white; border:none; border-radius:6px; padding:6px 12px; font-size:0.8rem; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">📥 서버에서 불러오기</button>
-          </div>
-          <div id="rulesAdminContainer">
-            <h3 style="font-size:0.9rem;">기본 규칙</h3><div id="defaultRulesList"></div>
-            <button type="button" onclick="addRuleRow('default')" style="width:100%; padding:10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px; color:var(--text-main);">+ 기본 규칙 추가</button>
-            <h3 style="font-size:0.9rem;">월정기 규칙</h3><div id="monthlyRulesList"></div>
-            <button type="button" onclick="addRuleRow('monthly')" style="width:100%; padding:10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px; color:var(--text-main);">+ 월정기 규칙 추가</button>
-            <h3 style="font-size:0.9rem;">이벤트 규칙</h3><div id="eventRulesList"></div>
-            <button type="button" onclick="addRuleRow('event')" style="width:100%; padding:10px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; margin-bottom:15px; color:var(--text-main);">+ 고객요청 규칙 추가</button>
-          </div>
-          <!-- [수정 3] 버튼 텍스트 단축 및 보라색(Secondary) 색상으로 완벽히 분리 -->
-          <button id="saveRulesToServerBtn" type="button" style="width:100%; padding:18px; background:var(--secondary); color:white; border:none; border-radius:10px; margin-top:20px; font-weight:bold;">🌐 규칙 서버 저장</button>
-        </section>
+        <section class="card"><h2>설정</h2><p>규칙 관리 메뉴</p></section>
       </div>
     </main>
 
     <div class="bottom-fixed-bar">
-      <!-- 메인 전송 버튼은 프라이머리 컬러 유지 -->
-      <button id="saveWorkBtn" class="save-work-btn-large">작업 일지 서버 전송</button>
+      <button id="saveWorkBtn" class="save-work-btn-large">작업 전송</button>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
-      <div class="spinner"></div>
-      <p id="loadingTitle" style="margin-top:20px; font-weight:bold; font-size: 1.2rem;">데이터 전송 시작</p>
-      <div class="progress-container"><div id="progressBar" class="progress-bar"></div></div>
-      <p id="progressStatus" style="margin-top: 12px; font-size: 0.95rem; color: #818cf8; font-weight: bold;">준비 중...</p>
-      <p id="detailLog" class="detail-log"></p>
+      <div class="spinner" style="width:40px; height:40px; border:4px solid #fff; border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite;"></div>
+      <p id="loadingTitle" style="margin-top:20px; font-weight:bold;">데이터 최종 동기화 중...</p>
     </div>
 
     <script>
       const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgkKi6qzWkd4ZBM1xECxtgdO80ynvIaUb5C3YoQQ6z7Ae_qN6hb1WnYXBircD5QThJDw/exec";
-      
-      let globalRules = { defaultRules: [], monthlyRules: [], eventRules: [] };
-      try {
-        const cacheStr = localStorage.getItem('4d_rules_cache');
-        if (cacheStr && cacheStr !== "undefined") globalRules = JSON.parse(cacheStr);
-      } catch (e) { console.error("규칙 로딩 실패", e); }
-
       let extraPhotoCount = 0;
-      let isExpanded = false;
+      let uploadedPhotoPaths = {};
 
-      function saveDraft() {
-        const draft = {
-          workerName: document.getElementById('workerName').value,
-          buildingSelect: document.getElementById('buildingSelect').value,
-          customerRequest: document.getElementById('customerRequest').value,
-          workMemo: document.getElementById('workMemo').value,
-          startHour: document.getElementById('startHour').value,
-          startMin: document.getElementById('startMin').value,
-          interiorTemp: document.getElementById('interiorTemp').value,
-          interiorHumidity: document.getElementById('interiorHumidity').value
-        };
-        localStorage.setItem('4d_draft', JSON.stringify(draft));
-      }
-
-      function loadDraft() {
+      async function uploadImmediately(input, id) {
+        if (!input.files || !input.files[0]) return;
+        const statusBadge = document.getElementById(`status_${id}`);
+        statusBadge.innerText = "전송 중...";
+        statusBadge.className = "upload-status status-loading";
         try {
-          const draftStr = localStorage.getItem('4d_draft');
-          if (draftStr) {
-            const draft = JSON.parse(draftStr);
-            Object.keys(draft).forEach(key => {
-              const el = document.getElementById(key);
-              if(el && draft[key]) el.value = draft[key];
-            });
+          const compressedData = await compressImage(input.files[0]);
+          const workDate = document.getElementById('workDate').value.replace(/-/g,'');
+          const worker = document.getElementById('workerName').value;
+          let fileName = `${workDate}_${worker}_${id}.JPG`;
+          if (id.startsWith('extra_')) {
+            const rowId = id.split('_')[1];
+            const taskRadio = document.querySelector(`input[name="task_${rowId}"]:checked`);
+            const statusRadio = document.querySelector(`input[name="status_${rowId}"]:checked`);
+            const taskName = taskRadio?.value === 'custom' ? document.getElementById(`custom_task_${rowId}`).value : taskRadio?.value;
+            fileName = `${workDate}_${worker}_${taskName}_${statusRadio?.value}.JPG`.replace(/\s+/g,'_');
           }
-        } catch(e) {}
-      }
-
-      function bindAutoSave() {
-        document.querySelectorAll('.auto-save').forEach(el => {
-          el.addEventListener('input', saveDraft);
-          el.addEventListener('change', saveDraft);
-        });
-      }
-
-      window.onload = async () => {
-        initTimeOptions();
-        initSelects();
-        
-        loadDraft(); 
-        bindAutoSave(); 
-        
-        const todayObj = new Date();
-        todayObj.setHours(0,0,0,0);
-        const minWeatherDate = new Date(todayObj); minWeatherDate.setDate(todayObj.getDate() - 30);
-        const maxWeatherDate = new Date(todayObj); maxWeatherDate.setDate(todayObj.getDate() + 14);
-
-        const wdInput = document.getElementById('workDate');
-        try {
-          flatpickr("#workDate", { 
-            locale: (typeof flatpickr !== 'undefined' && flatpickr.l10ns && flatpickr.l10ns.ko) ? "ko" : "default", 
-            defaultDate: "today", 
-            disableMobile: true,
-            onDayCreate: function(dObj, dStr, fp, dayElem) {
-              if (dayElem.dateObj >= minWeatherDate && dayElem.dateObj <= maxWeatherDate) {
-                dayElem.classList.add("weather-available");
-              }
-            },
-            onChange: (selectedDates, dateStr) => { 
-              updateChecklist(); 
-              fetchWeather(dateStr); 
-            } 
-          });
+          const payload = { action: "UPLOAD_SINGLE_PHOTO", fileName: fileName, fileData: compressedData, yearMonthFolder: workDate.substring(0,6) };
+          await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
+          statusBadge.innerText = "완료";
+          statusBadge.className = "upload-status status-done";
+          uploadedPhotoPaths[id] = fileName; 
+          saveDraft(); 
         } catch (e) {
-          wdInput.removeAttribute("readonly");
-          wdInput.type = "date";
-        }
-
-        renderSettingsUI();
-        updateChecklist();
-        fetchWeather(new Date().toISOString().split('T')[0]);
-        if(!document.getElementById('startHour').value) {
-          document.getElementById('startHour').value = "06";
-          document.getElementById('startMin').value = "00";
-        }
-        syncEndTime();
-
-        const savedTheme = localStorage.getItem('4d_theme') || 'dark';
-        if (savedTheme === 'light') { 
-          document.body.classList.remove('dark-mode'); 
-          document.getElementById('themeToggleBtn').innerText = '🌙'; 
-        }
-      };
-
-      document.getElementById('themeToggleBtn').onclick = function() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        this.innerText = isDark ? '☀️' : '🌙';
-        localStorage.setItem('4d_theme', isDark ? 'dark' : 'light');
-      };
-
-      async function fetchWeather(targetDate) {
-        const weatherText = document.getElementById('weatherInfoText');
-        weatherText.innerText = `📍 ${targetDate} 기상 조회 중...`;
-        weatherText.style.background = 'var(--primary)';
-
-        const FIXED_LAT = 36.103;
-        const FIXED_LON = 128.416;
-
-        try {
-          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${FIXED_LAT}&longitude=${FIXED_LON}&start_date=${targetDate}&end_date=${targetDate}&hourly=temperature_2m,relative_humidity_2m,weather_code&timezone=Asia/Seoul`);
-          const d = await res.json();
-          
-          if (d.hourly && d.hourly.temperature_2m && d.hourly.temperature_2m.length > 12) {
-            const temp = d.hourly.temperature_2m[12] ?? '??';
-            const hum = d.hourly.relative_humidity_2m[12] ?? '??';
-            const code = d.hourly.weather_code[12] ?? 0;
-            const c = { 0:'맑음', 1:'대체로맑음', 2:'구름조금', 3:'흐림', 45:'안개', 61:'약한비', 63:'비', 71:'눈', 95:'뇌우' };
-            const label = targetDate === new Date().toISOString().split('T')[0] ? '오늘' : targetDate;
-            weatherText.innerText = `기상(${label}): ${c[code] || '흐림'} (${temp}°C, 습도 ${hum}%)`;
-            weatherText.style.background = (code >= 61) ? 'var(--danger)' : 'var(--primary)';
-          } else {
-            weatherText.innerText = `📍 기상 정보 없음 (제공 범위 이탈)`;
-            weatherText.style.background = 'var(--text-muted)';
-          }
-        } catch (e) { 
-          weatherText.innerText = "📍 날씨 서버 통신 실패"; 
-          weatherText.style.background = 'var(--danger)';
+          statusBadge.innerText = "실패(재시도)";
+          statusBadge.className = "upload-status status-wait";
         }
       }
 
-      function updateChecklist() {
-        const list = document.getElementById('checklistItems');
-        if (!list) return;
-        list.innerHTML = '';
-        
-        const b = document.getElementById('buildingSelect').value;
-        const dt = document.getElementById('workDate').value;
-        if (!dt) return;
-
-        const d = new Date(dt), day = ["일","월","화","수","목","금","토"][d.getDay()];
-        const weekNum = Math.ceil((d.getDate() + new Date(d.getFullYear(), d.getMonth(), 1).getDay()) / 7);
-        const weekStr = ["","첫째","둘째","셋째","넷째","다섯째"][weekNum];
-        
-        let tasks = "";
-        const ev = globalRules.eventRules.find(r => r.building === b && r.date === dt);
-        const mo = globalRules.monthlyRules.find(r => r.building === b && r.weekOrder === weekStr && r.weekday === day);
-        const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
-        
-        if (ev) tasks = ev.tasks; 
-        else if (mo) tasks = mo.tasks; 
-        else if (de) tasks = de.tasks;
-        
-        if (tasks) { 
-          tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false)); 
-        } else { 
-          list.innerHTML = `<li style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`; 
-        }
-      }
-
-      function addChecklistItem(text, isDel, isChk) {
-        const li = document.createElement('li');
-        li.className = "checklist-item";
-        li.innerHTML = `<input type="checkbox" ${isChk ? 'checked' : ''}><span data-task="${text.replace(/\[현장추가\]\s*/, '')}">${text}</span>${isDel ? `<button type="button" class="btn-del-item" onclick="this.parentElement.remove()">삭제</button>` : ''}`;
-        document.getElementById('checklistItems').appendChild(li);
-      }
-
-      window.checkAllItems = function(isCheck) {
-        document.querySelectorAll('#checklistItems input[type="checkbox"]').forEach(cb => cb.checked = isCheck);
-      };
-
-      document.getElementById('addCustomItemBtn').onclick = () => {
-        const i = document.getElementById('customItemInput');
-        if (i.value.trim()) { 
-          const emptyMsg = document.querySelector('#checklistItems li[style*="dashed"]');
-          if (emptyMsg) emptyMsg.remove();
-          addChecklistItem("[현장추가] " + i.value.trim(), true, true); 
-          i.value = ''; 
-        }
-      };
-
-      function getChecklistButtonsHTML(id) {
-        const items = Array.from(document.querySelectorAll('#checklistItems span[data-task]')).map(span => span.getAttribute('data-task'));
-        let html = `<div class="task-tabs">`;
-        
-        items.forEach((item, index) => {
-          html += `<label>
-                     <input type="radio" name="task_${id}" value="${item}" onchange="handleTaskSelect(${id})" ${index === 0 ? 'checked' : ''}>
-                     <span>${item}</span>
-                   </label>`;
-        });
-        
-        html += `<label>
-                   <input type="radio" name="task_${id}" value="custom" onchange="handleTaskSelect(${id})" ${items.length === 0 ? 'checked' : ''}>
-                   <span>✍️ 기타입력</span>
-                 </label>`;
-        html += `</div>`;
-        return html;
-      }
-
-      document.getElementById('addFieldPhotoBtn').onclick = () => {
-        extraPhotoCount++;
-        const div = document.createElement('div');
-        div.className = 'extra-photo-row';
-        div.id = `row_extra_${extraPhotoCount}`;
-        
-        const buttonsHTML = getChecklistButtonsHTML(extraPhotoCount);
-
-        div.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-             <span style="font-size:0.75rem; color:var(--primary); font-weight:bold;">📸 작업 사진 #${extraPhotoCount}</span>
-             <button type="button" onclick="document.getElementById('row_extra_${extraPhotoCount}').remove()" style="background:none; border:none; color:var(--danger); font-size:0.75rem; font-weight:bold;">삭제</button>
-          </div>
-          
-          <!-- Step 1: 청소 항목 타일 버튼 -->
-          ${buttonsHTML}
-          <input type="text" id="custom_task_${extraPhotoCount}" placeholder="예: 창틀 파손 발견" style="display:none; margin-bottom: 12px; background:var(--bg-main);">
-
-          <!-- [수정 2] Step 2: 작업 상태 탭 4분할 적용 -->
-          <div class="status-tabs">
-            <label><input type="radio" name="status_${extraPhotoCount}" value="작업전"><span>작업전</span></label>
-            <label><input type="radio" name="status_${extraPhotoCount}" value="작업중" checked><span>작업중</span></label>
-            <label><input type="radio" name="status_${extraPhotoCount}" value="작업후"><span>작업후</span></label>
-            <label><input type="radio" name="status_${extraPhotoCount}" value="현장사진"><span>현장사진</span></label>
-          </div>
-
-          <!-- [수정 2] Step 3: 촬영/첨부 듀얼 버튼 적용 -->
-          <div style="display:flex; gap:8px;">
-            <input type="file" id="file_extra_cam_${extraPhotoCount}" accept="image/*" capture="environment" style="display:none;" onchange="previewFileName(this, ${extraPhotoCount})">
-            <label class="photo-btn-label" style="flex:1; margin:0;" onclick="document.getElementById('file_extra_cam_${extraPhotoCount}').click()">📸 촬영</label>
-            
-            <input type="file" id="file_extra_gal_${extraPhotoCount}" accept="image/*" style="display:none;" onchange="previewFileName(this, ${extraPhotoCount})">
-            <label class="photo-btn-label photo-btn-label-alt" style="flex:1; margin:0;" onclick="document.getElementById('file_extra_gal_${extraPhotoCount}').click()">🖼️ 첨부</label>
-          </div>
-          <div id="status_file_extra_${extraPhotoCount}" style="font-size:0.8rem; text-align:center; color:var(--text-muted); margin-top:6px; min-height: 16px;"></div>
-        `;
-        document.getElementById('fieldPhotos').appendChild(div);
-        
-        handleTaskSelect(extraPhotoCount);
-      };
-
-      window.handleTaskSelect = function(id) {
-        const checkedRadio = document.querySelector(`input[name="task_${id}"]:checked`);
-        const customInput = document.getElementById(`custom_task_${id}`);
-        if (checkedRadio && checkedRadio.value === 'custom') {
-          customInput.style.display = 'block';
-          customInput.focus();
-        } else {
-          customInput.style.display = 'none';
-        }
-      };
-
-      // 온습도계 사진 상태 표시 갱신 및 중복 제거
-      window.previewMainPhoto = function(input, labelId) {
-        const statusDiv = document.getElementById(labelId);
-        if(input.files && input.files[0]) {
-           statusDiv.innerHTML = `✅ 첨부 완료: ${input.files[0].name.substring(0,12)}...`;
-           statusDiv.style.color = "#10b981";
-           statusDiv.style.fontWeight = "bold";
-           // 카메라/갤러리 중 하나를 고르면 다른 쪽 파일 입력값을 초기화하여 충돌 방지
-           if(input.id === 'photoThermometerCam') document.getElementById('photoThermometerGal').value = "";
-           else document.getElementById('photoThermometerCam').value = "";
-        }
-      };
-
-      // 작업 사진 상태 표시 갱신 및 중복 제거
-      window.previewFileName = function(input, id) {
-        const statusDiv = document.getElementById(`status_file_extra_${id}`);
-        if(input.files && input.files[0]) {
-           statusDiv.innerHTML = `✅ 첨부 완료: ${input.files[0].name.substring(0,12)}...`;
-           statusDiv.style.color = "#10b981";
-           statusDiv.style.fontWeight = "bold";
-           // 카메라/갤러리 충돌 방지
-           if(input.id.includes('_cam_')) document.getElementById(`file_extra_gal_${id}`).value = "";
-           else document.getElementById(`file_extra_cam_${id}`).value = "";
-        }
-      };
-
-      function initTimeOptions() {
-        const startH = document.getElementById('startHour'), endH = document.getElementById('endHour');
-        const range = isExpanded ? {start: 0, end: 23} : {start: 6, end: 20};
-        const curS = startH.value;
-        startH.innerHTML = ''; endH.innerHTML = '';
-        for(let i=range.start; i<=range.end; i++) {
-          const v = i.toString().padStart(2, '0');
-          startH.innerHTML += `<option value="${v}">${v}시</option>`;
-          endH.innerHTML += `<option value="${v}">${v}시</option>`;
-        }
-        if(curS && curS >= range.start && curS <= range.end) startH.value = curS;
-      }
-
-      function syncEndTime() {
-        const h = parseInt(document.getElementById('startHour').value);
-        let eh = h + 1;
-        const max = isExpanded ? 23 : 20;
-        if (eh > max) eh = max;
-        document.getElementById('endHour').value = eh.toString().padStart(2, '0');
-        document.getElementById('endMin').value = document.getElementById('startMin').value;
-        saveDraft(); 
-      }
-
-      document.getElementById('btnExpandTime').onclick = function() {
-        isExpanded = !isExpanded;
-        this.innerText = isExpanded ? "시간 축소" : "시간 확장 (00~23시)";
-        this.classList.toggle('active', isExpanded);
-        initTimeOptions(); 
-        syncEndTime();
-      };
-
-      function initSelects() {
-        const ts = document.getElementById('interiorTemp'), hs = document.getElementById('interiorHumidity');
-        ts.innerHTML = '<option value="">미선택</option>'; hs.innerHTML = '<option value="">미선택</option>';
-        for(let i=10; i<=40; i++) ts.innerHTML += `<option value="${i}">${i}°C</option>`;
-        for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}%</option>`;
-      }
-
-      function renderSettingsUI() {
-        const renderList = (id, type, arr) => {
-          const l = document.getElementById(id); 
-          if(l) { l.innerHTML = ''; arr.forEach(d => window.addRuleRow(type, d)); }
-        };
-        renderList('defaultRulesList', 'default', globalRules.defaultRules);
-        renderList('monthlyRulesList', 'monthly', globalRules.monthlyRules);
-        renderList('eventRulesList', 'event', globalRules.eventRules);
-      }
-
-      window.addRuleRow = function(type, data = {}) {
-        const div = document.createElement('div');
-        div.className = 'rule-row';
-        div.style.cssText = "background: var(--bg-card); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color);";
-        
-        div.innerHTML = `<div class="rule-header" style="text-align: right; margin-bottom: 5px;">
-                          <button type="button" class="delete-rule" onclick="this.parentElement.parentElement.remove()" style="background:var(--danger); color:white; border:none; border-radius:4px; padding:4px 8px; font-size:0.75rem;">삭제</button>
-                        </div>
-                        <select class="rule-building" style="margin-bottom:6px;"><option value="백산빌딩" ${data.building==='백산빌딩'?'selected':''}>백산빌딩</option><option value="효성빌딩" ${data.building==='효성빌딩'?'selected':''}>효성빌딩</option></select>`;
-        if(type === 'default') { 
-          div.innerHTML += `<select class="rule-weekday" style="margin-bottom:6px;">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`; 
-        } else if(type === 'monthly') {
-          div.innerHTML += `<select class="rule-weekorder" style="margin-bottom:6px;">${['첫째','둘째','셋째','넷째','다섯째'].map(w=>`<option value="${w}" ${data.weekOrder===w?'selected':''}>${w} 주</option>`).join('')}</select>`;
-          div.innerHTML += `<select class="rule-weekday" style="margin-bottom:6px;">${['월','화','수','목','금','토','일'].map(d=>`<option value="${d}" ${data.weekday===d?'selected':''}>${d}요일</option>`).join('')}</select>`;
-        } else if(type === 'event') { 
-          div.innerHTML += `<input type="text" class="rule-date" value="${data.date || ''}" readonly placeholder="날짜 선택" style="margin-bottom:6px; background-color: var(--input-bg); cursor: pointer;">`; 
-        }
-        div.innerHTML += `<textarea class="rule-tasks" placeholder="항목 입력 (엔터로 줄 구분)" style="height:60px;">${data.tasks || ''}</textarea>`;
-        document.getElementById(`${type}RulesList`).appendChild(div);
-        
-        if (type === 'event') { 
-          try {
-            flatpickr(div.querySelector('.rule-date'), { locale: "ko", dateFormat: "Y-m-d" }); 
-          } catch(e) {
-             div.querySelector('.rule-date').removeAttribute("readonly");
-             div.querySelector('.rule-date').type = "date";
-          }
-        }
-      };
-
-      document.getElementById('saveRulesToServerBtn').onclick = async () => {
-        const collect = (id, type) => Array.from(document.getElementById(id).children).map(r => {
-          const d = { building: r.querySelector('.rule-building').value, tasks: r.querySelector('.rule-tasks').value };
-          if(type === 'default') d.weekday = r.querySelector('.rule-weekday').value;
-          if(type === 'monthly') { d.weekOrder = r.querySelector('.rule-weekorder').value; d.weekday = r.querySelector('.rule-weekday').value; }
-          if(type === 'event') d.date = r.querySelector('.rule-date').value;
-          return d;
-        });
-        globalRules.defaultRules = collect('defaultRulesList', 'default');
-        globalRules.monthlyRules = collect('monthlyRulesList', 'monthly');
-        globalRules.eventRules = collect('eventRulesList', 'event');
-        localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules));
-        
-        const overlay = document.getElementById('loadingOverlay'); overlay.style.display = 'flex';
-        try { 
-          await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify({action:"SAVE_RULES", rules: globalRules}) }); 
-          alert("✅ 규칙 저장 완료!"); 
-          updateChecklist(); 
-        } catch (e) { alert("저장 실패"); }
-        finally { overlay.style.display = 'none'; }
-      };
-
-      document.getElementById('loadRulesFromServerBtn').onclick = async () => {
-        const overlay = document.getElementById('loadingOverlay'); 
-        overlay.style.display = 'flex';
-        document.getElementById('loadingTitle').innerText = "서버 데이터 수신 중";
-        document.getElementById('progressStatus').innerText = "규칙 목록을 다운로드합니다...";
-        
-        try {
-          const res = await fetch(APP_SCRIPT_URL, { method:'POST', body: JSON.stringify({action:"GET_RULES"}) });
-          const json = await res.json();
-          if (json.status === "success" && json.data) {
-             globalRules = json.data;
-             localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules));
-             renderSettingsUI();
-             updateChecklist();
-             alert("📥 서버 규칙을 성공적으로 불러왔습니다!");
-          } else {
-             alert("서버에 저장된 규칙이 없습니다.");
-          }
-        } catch (e) { 
-          alert("❌ 불러오기 실패: 구글 서버 CORS 권한 문제일 수 있습니다."); 
-        } finally { 
-          overlay.style.display = 'none'; 
-          document.getElementById('loadingTitle').innerText = "데이터 전송 시작";
-        }
-      };
-
-      function switchTab(t) {
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(t + '-tab').style.display = 'block';
-        document.querySelector(`[data-tab="${t}"]`).classList.add('active');
-      }
-
-      const compressImage = (file, maxWidth = 1920, quality = 0.85) => {
+      function compressImage(file) {
         return new Promise((resolve) => {
           const reader = new FileReader();
           reader.onload = e => {
@@ -637,105 +165,114 @@
             img.src = e.target.result;
             img.onload = () => {
               const canvas = document.createElement('canvas');
+              const maxWidth = 1920;
               let w = img.width, h = img.height;
               if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
               canvas.width = w; canvas.height = h;
               canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-              resolve(canvas.toDataURL('image/jpeg', quality).split(',')[1]);
+              resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
             };
           };
           reader.readAsDataURL(file);
         });
+      }
+
+      function saveDraft() {
+        const extraPhotosInfo = [];
+        document.querySelectorAll('.extra-photo-row[id^="row_extra_"]').forEach(row => {
+          const id = row.id.split('_')[2];
+          const taskRadio = row.querySelector(`input[name="task_${id}"]:checked`);
+          const statusRadio = row.querySelector(`input[name="status_${id}"]:checked`);
+          extraPhotosInfo.push({ id: id, task: taskRadio ? taskRadio.value : "", status: statusRadio ? statusRadio.value : "" });
+        });
+        const draft = { workerName: document.getElementById('workerName').value, buildingSelect: document.getElementById('buildingSelect').value, workMemo: document.getElementById('workMemo').value, uploadedPhotos: uploadedPhotoPaths, extraPhotosInfo: extraPhotosInfo, lastCount: extraPhotoCount };
+        localStorage.setItem('4d_draft', JSON.stringify(draft));
+      }
+
+      function loadDraft() {
+        try {
+          const draftStr = localStorage.getItem('4d_draft');
+          if (!draftStr) return;
+          const draft = JSON.parse(draftStr);
+          document.getElementById('workerName').value = draft.workerName || "이영준";
+          document.getElementById('buildingSelect').value = draft.buildingSelect || "백산빌딩";
+          document.getElementById('workMemo').value = draft.workMemo || "";
+          uploadedPhotoPaths = draft.uploadedPhotos || {};
+          extraPhotoCount = draft.lastCount || 0;
+          if (draft.extraPhotosInfo) {
+            draft.extraPhotosInfo.forEach(info => {
+              createFieldPhotoRow(info.id, info);
+              if (uploadedPhotoPaths[`extra_${info.id}`]) {
+                const badge = document.getElementById(`status_extra_${info.id}`);
+                badge.innerText = "완료"; badge.className = "upload-status status-done";
+              }
+            });
+          }
+        } catch(e) {}
+      }
+
+      window.onload = () => {
+        flatpickr("#workDate", { locale: "ko", defaultDate: "today", dateFormat: "Y-m-d" });
+        loadDraft();
+        document.querySelectorAll('.auto-save').forEach(el => el.onchange = saveDraft);
       };
+
+      function createFieldPhotoRow(id, savedInfo = null) {
+        const div = document.createElement('div');
+        div.className = 'extra-photo-row';
+        div.id = `row_extra_${id}`;
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+             <span style="font-size:0.8rem; font-weight:bold;">📸 사진 #${id}</span>
+             <span id="status_extra_${id}" class="upload-status status-wait">대기</span>
+          </div>
+          <div class="task-tabs">
+            <label><input type="radio" name="task_${id}" value="기본" checked><span>기본</span></label>
+            <label><input type="radio" name="task_${id}" value="custom"><span>직접입력</span></label>
+          </div>
+          <input type="text" id="custom_task_${id}" style="display:none; margin-bottom:10px;">
+          <div class="status-tabs">
+            <label><input type="radio" name="status_${id}" value="작업전"><span>전</span></label>
+            <label><input type="radio" name="status_${id}" value="작업중" checked><span>중</span></label>
+            <label><input type="radio" name="status_${id}" value="작업후"><span>후</span></label>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <input type="file" id="file_${id}_cam" accept="image/*" capture="environment" style="display:none;" onchange="uploadImmediately(this, 'extra_${id}')">
+            <label class="photo-btn-label" style="flex:1;" onclick="document.getElementById('file_${id}_cam').click()">📸 촬영</label>
+            <input type="file" id="file_${id}_gal" accept="image/*" style="display:none;" onchange="uploadImmediately(this, 'extra_${id}')">
+            <label class="photo-btn-label photo-btn-label-alt" style="flex:1;" onclick="document.getElementById('file_${id}_gal').click()">🖼️ 첨부</label>
+          </div>
+        `;
+        document.getElementById('fieldPhotos').appendChild(div);
+      }
+
+      document.getElementById('addFieldPhotoBtn').onclick = () => { extraPhotoCount++; createFieldPhotoRow(extraPhotoCount); saveDraft(); };
 
       document.getElementById('saveWorkBtn').onclick = async () => {
-        const overlay = document.getElementById('loadingOverlay'), pBar = document.getElementById('progressBar'), pStat = document.getElementById('progressStatus'), lTitle = document.getElementById('loadingTitle'), dLog = document.getElementById('detailLog');
-        const checklistItems = Array.from(document.querySelectorAll('#checklistItems li')).map(li => ({ item: li.querySelector('span').innerText, checked: li.querySelector('input').checked ? "O" : "X" }));
-        
-        if (checklistItems.length === 0) {
-          alert("⚠️ 청소내역을 추가해 주세요.");
-          return;
-        }
-
+        const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = 'flex';
-        const updateProgress = (title, status, detail, percent) => {
-          lTitle.innerText = title; pStat.innerText = status; dLog.innerText = detail; pBar.style.width = percent + '%';
+        const payload = {
+          action: "SUBMIT_TEXT_ONLY",
+          workDate: document.getElementById('workDate').value,
+          worker: document.getElementById('workerName').value,
+          building: document.getElementById('buildingSelect').value,
+          memo: document.getElementById('workMemo').value,
+          checklist: Array.from(document.querySelectorAll('.checklist-item')).map(li => li.innerText + (li.querySelector('input').checked ? ":O" : ":X")),
+          uploadedPhotos: uploadedPhotoPaths 
         };
-
         try {
-          updateProgress("데이터 취합 중...", "전송 데이터 패키징", "작업 정보를 수집하고 있습니다.", 15);
-          const stH = document.getElementById('startHour').value, stM = document.getElementById('startMin').value;
-          const etH = document.getElementById('endHour').value, etM = document.getElementById('endMin').value;
-          
-          let diffMin = (parseInt(etH)*60 + parseInt(etM)) - (parseInt(stH)*60 + parseInt(stM));
-          if (diffMin < 0) diffMin += 24 * 60; 
-          const duration = `${Math.floor(diffMin/60)}시간 ${diffMin%60}분`;
-          
-          const payload = {
-            workDate: document.getElementById('workDate').value,
-            startTime: `${stH}:${stM}`, endTime: `${etH}:${etM}`, workDuration: duration,
-            building: document.getElementById('buildingSelect').value,
-            worker: document.getElementById('workerName').value,
-            weather: document.getElementById('weatherInfoText').innerText,
-            interiorTemp: document.getElementById('interiorTemp').value,
-            interiorHumid: document.getElementById('interiorHumidity').value,
-            customerReq: document.getElementById('customerRequest').value,
-            workMemo: document.getElementById('workMemo').value,
-            yearMonthFolder: document.getElementById('workDate').value.substring(0,7).replace('-',''),
-            checklist: checklistItems,
-            photos: []
-          };
-
-          // 카메라/갤러리 중 선택된 파일을 가져옴
-          const thF = document.getElementById('photoThermometerCam').files[0] || document.getElementById('photoThermometerGal').files[0];
-          
-          // 사진 컴포넌트들을 스캔
-          const exPRs = Array.from(document.querySelectorAll('.extra-photo-row')).filter(r => {
-             return r.querySelector('input[id^="file_extra_cam_"]').files[0] || r.querySelector('input[id^="file_extra_gal_"]').files[0];
-          });
-          const totF = (thF ? 1 : 0) + exPRs.length;
-          let doneF = 0;
-
-          if(thF) { 
-            doneF++; 
-            updateProgress("로컬 최적화 중...", `[${doneF}/${totF}] 온습도계 사진 압축`, "고화질(1MB)을 유지하며 압축합니다.", 20 + (doneF/totF*30));
-            payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_내부온습도.JPG`, data: await compressImage(thF) }); 
-          }
-          
-          for(let r of exPRs) { 
-            const actualFile = r.querySelector('input[id^="file_extra_cam_"]').files[0] || r.querySelector('input[id^="file_extra_gal_"]').files[0];
-            
-            if(actualFile) {
-              doneF++; 
-              const rowId = r.id.split('_')[2];
-              const taskRadio = r.querySelector(`input[name="task_${rowId}"]:checked`);
-              let taskName = taskRadio ? taskRadio.value : "";
-              
-              if (taskName === 'custom') {
-                taskName = r.querySelector(`#custom_task_${rowId}`).value.trim();
-              }
-              if (!taskName) taskName = `작업사진${doneF}`; 
-
-              const statusRadio = r.querySelector(`input[name="status_${rowId}"]:checked`);
-              const statusName = statusRadio ? statusRadio.value : "작업상태불명";
-
-              const finalPhotoDesc = `${taskName}_${statusName}`.replace(/\s+/g,'_');
-              
-              updateProgress("로컬 최적화 중...", `[${doneF}/${totF}] '${finalPhotoDesc}' 사진 압축`, "고화질(1MB)을 유지하며 압축합니다.", 20 + (doneF/totF*30));
-              payload.photos.push({ fileName: `${payload.workDate.replace(/-/g,'')}_${finalPhotoDesc}.JPG`, data: await compressImage(actualFile) }); 
-            }
-          }
-
-          updateProgress("서버 전송 중...", "구글 클라우드 연결", "압축된 데이터를 전송하고 있습니다.", 60);
           await fetch(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
-          
-          updateProgress("기록 완료!", "모든 데이터 전송 완료", "일지가 안전하게 저장되었습니다.", 100);
-          
+          alert("✅ 모든 작업 보고가 완료되었습니다.");
           localStorage.removeItem('4d_draft');
-          
-          setTimeout(() => { alert("✅ 일지 전송 성공!"); location.reload(); }, 500);
-        } catch (e) { alert("❌ 에러: " + e.message); overlay.style.display = 'none'; }
+          location.reload();
+        } catch (e) { alert("최종 전송 실패"); } finally { overlay.style.display = 'none'; }
       };
+
+      function switchTab(t) {
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById(t + '-tab').style.display = 'block';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === t));
+      }
     </script>
   </body>
 </html>
