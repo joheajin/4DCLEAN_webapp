@@ -61,7 +61,10 @@
       .extra-photo-row { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px dashed var(--border-color); margin-bottom: 15px; }
       .photo-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
       .photo-btn-label { display: flex; align-items: center; justify-content: center; padding: 12px 6px; background: var(--primary); color: white; text-align: center; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.3s; }
-      .photo-btn-label-alt { background: #e11d48; } 
+      
+      /* [수정] 사진 첨부 버튼의 색상을 차분한 슬레이트 블루 그레이로 변경 */
+      .photo-btn-label-alt { background: #64748b; } 
+      
       .photo-btn-label.success { background: var(--success) !important; }
       .photo-btn-label.uploading { background: var(--weather-available) !important; color: #1e293b; pointer-events: none; }
       
@@ -81,7 +84,6 @@
       .spinner { width: 50px; height: 50px; border: 5px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
 
-      /* [복구 및 고도화] 다크모드 캘린더 정밀 스타일 */
       .dark-mode .flatpickr-calendar { 
         background: #1e293b !important; 
         border: 1px solid #475569 !important; 
@@ -100,7 +102,6 @@
         fill: #ffffff !important; 
       }
       
-      /* [중요] 노란색 날짜 재적용 - 다크모드에서도 선명하게 */
       html body span.flatpickr-day.weather-available,
       html body.dark-mode span.flatpickr-day.weather-available { 
         color: var(--weather-available) !important; 
@@ -335,8 +336,6 @@
       window.onload = async () => {
         initTimeOptions(); initSelects();
         const todayStr = new Date().toISOString().split('T')[0];
-        
-        // [복구 및 고도화] 노란색 날짜 및 다크모드 대응 달력 초기화
         flatpickr("#workDate", { 
           locale: "ko", 
           defaultDate: "today", 
@@ -350,17 +349,12 @@
           },
           onChange: () => { updateChecklist(true); fetchWeather(document.getElementById('workDate').value); saveDraft(); } 
         });
-        
         loadDraft();
         if (document.querySelectorAll('#checklistItems li').length === 0) updateChecklist(true);
         fetchWeather(document.getElementById('workDate').value || todayStr);
         initAutoSaveListeners();
-        
         const savedTheme = localStorage.getItem('4d_theme') || 'dark';
-        if (savedTheme === 'light') { 
-          document.body.classList.remove('dark-mode'); 
-          document.getElementById('themeToggleBtn').innerText = '🌙'; 
-        }
+        if (savedTheme === 'light') { document.body.classList.remove('dark-mode'); document.getElementById('themeToggleBtn').innerText = '🌙'; }
       };
 
       async function fetchWeather(targetDate) {
@@ -379,25 +373,19 @@
       function updateChecklist(force = false) {
         const list = document.getElementById('checklistItems'); if (!list) return;
         if (!force && localStorage.getItem('4d_draft') && list.children.length > 0) return;
-
         list.innerHTML = '';
         const b = document.getElementById('buildingSelect').value, dt = document.getElementById('workDate').value;
         if (!dt) return;
         const d = new Date(dt), day = ["일","월","화","수","목","금","토"][d.getDay()];
         const weekNum = Math.ceil((d.getDate() + new Date(d.getFullYear(), d.getMonth(), 1).getDay()) / 7);
         const weekStr = ["","첫째","둘째","셋째","넷째","다섯째"][weekNum];
-        
         let tasks = "";
         const ev = globalRules.eventRules.find(r => r.building === b && r.date === dt);
         const mo = globalRules.monthlyRules.find(r => r.building === b && r.weekOrder === weekStr && r.weekday === day);
         const de = globalRules.defaultRules.find(r => r.building === b && r.weekday === day);
         tasks = ev ? ev.tasks : (mo ? mo.tasks : (de ? de.tasks : ""));
-
-        if (tasks) {
-          tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false));
-        } else {
-          list.innerHTML = `<li class="no-items-placeholder" style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`;
-        }
+        if (tasks) tasks.split('\n').filter(t => t.trim()).forEach(t => addChecklistItem(t.trim(), false, false));
+        else list.innerHTML = `<li class="no-items-placeholder" style="color:var(--text-muted); padding:10px; border:1px dashed var(--border-color); border-radius:8px; text-align:center; font-size:0.8rem;">등록된 규칙 없음</li>`;
         saveDraft();
       }
 
@@ -501,13 +489,7 @@
         try {
           const res = await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', body: JSON.stringify({action:"GET_RULES"}), headers: { 'Content-Type': 'text/plain' } });
           const json = await res.json();
-          if (json.status === "success" && json.data) { 
-            globalRules = json.data; 
-            localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules)); 
-            renderSettingsUI(); 
-            updateChecklist(true); 
-            alert("📥 서버 데이터 동기화 완료!"); 
-          }
+          if (json.status === "success" && json.data) { globalRules = json.data; localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules)); renderSettingsUI(); updateChecklist(true); alert("📥 서버 데이터 동기화 완료!"); }
           else alert("저장된 규칙이 없습니다.");
         } catch (e) { alert("불러오기 실패"); } finally { overlay.style.display = 'none'; }
       };
