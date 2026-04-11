@@ -64,10 +64,13 @@
       
       .extra-photo-row { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px dashed var(--border-color); margin-bottom: 15px; }
       .photo-btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-      .photo-btn-label { display: flex; align-items: center; justify-content: center; padding: 12px 6px; background: var(--primary); color: white; text-align: center; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.3s; }
+      .photo-btn-label { display: flex; align-items: center; justify-content: center; padding: 12px 6px; background: var(--primary); color: white; text-align: center; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: all 0.3s ease; }
       .photo-btn-label-alt { background: #64748b; } 
       .photo-btn-label.success { background: var(--success) !important; }
       .photo-btn-label.uploading { background: var(--weather-available) !important; color: #1e293b; pointer-events: none; }
+      
+      /* [수정 1 추가] 비활성화 상태용 클래스 */
+      .photo-btn-label.disabled-btn { opacity: 0.3; pointer-events: none; }
       
       .task-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
       .task-tabs label { margin: 0; cursor: pointer; min-width: 0; }
@@ -277,7 +280,8 @@
               if (uploadedPhotos['main_thermometer']) {
                 document.getElementById('photoThermometerCamLabel').innerText = "✅ 업로드 완료";
                 document.getElementById('photoThermometerCamLabel').classList.add('success');
-                document.getElementById('photoThermometerGalLabel').style.display = 'none';
+                // [수정 1 적용] 숨김 처리 대신 시각적 비활성화 처리 (복구 시점)
+                document.getElementById('photoThermometerGalLabel').classList.add('disabled-btn');
               }
             }
             if (draft.extraPhotoCount) {
@@ -286,7 +290,8 @@
                 if (uploadedPhotos[`extra_${i}`]) {
                    document.getElementById(`label_file_extra_${i}_cam`).innerText = "✅ 업로드 완료";
                    document.getElementById(`label_file_extra_${i}_cam`).classList.add('success');
-                   document.getElementById(`label_file_extra_${i}_gal`).style.display = 'none';
+                   // [수정 1 적용] 숨김 처리 대신 시각적 비활성화 처리 (복구 시점)
+                   document.getElementById(`label_file_extra_${i}_gal`).classList.add('disabled-btn');
                 }
               }
               extraPhotoCount = draft.extraPhotoCount;
@@ -338,9 +343,18 @@
             label.classList.remove('uploading');
             label.classList.add('success');
             
-            const otherBtnId = type === 'cam' ? labelId.replace('_cam', '_gal') : labelId.replace('_gal', '_cam');
+            // [수정 1 적용] 반대쪽 버튼 찾기 로직 교정 및 비활성화 처리
+            let otherBtnId = "";
+            if (photoKey === 'main_thermometer') {
+              otherBtnId = (type === 'cam') ? 'photoThermometerGalLabel' : 'photoThermometerCamLabel';
+            } else {
+              otherBtnId = (type === 'cam') ? labelId.replace('_cam', '_gal') : labelId.replace('_gal', '_cam');
+            }
+            
             const otherBtn = document.getElementById(otherBtnId);
-            if (otherBtn) otherBtn.style.display = 'none';
+            if (otherBtn) {
+              otherBtn.classList.add('disabled-btn');
+            }
             
             saveDraft();
           } else { throw new Error(result.error || "업로드 실패"); }
