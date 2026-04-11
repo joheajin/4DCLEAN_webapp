@@ -1,9 +1,8 @@
 /**
- * 4D클린 서버 마스터 스크립트 v2.0
- * 구글 드라이브 지정 폴더 고정 및 첨부사진 가로 배열 로직 탑재
+ * 4D클린 서버 마스터 스크립트 v2.2
+ * 구조화된 2-Depth 폴더 트리(건물명 > 년월) 적용 및 초고속 저장 엔진
  */
 
-// [수정 3] 성도님이 지정하신 루트 폴더 ID로 강제 고정
 var BASE_FOLDER_ID = "1lFsgupn4XZvaiTPa7BUR-lMOStJZD4fe";
 
 function doPost(e) {
@@ -18,7 +17,8 @@ function doPost(e) {
 
     // 1. 단건 사진 업로드 (물리적 파일 저장)
     if (action === "UPLOAD_SINGLE_PHOTO") {
-      var folder = getFolder(data.yearMonthFolder);
+      // [핵심 1] 단건 업로드 시 건물명과 년월을 동시에 넘겨 2단계 폴더를 거치도록 수정
+      var folder = getFolder(data.building, data.yearMonthFolder);
       var blob = Utilities.newBlob(Utilities.base64Decode(data.fileData), 'image/jpeg', data.fileName);
       var newFile = folder.createFile(blob);
       
@@ -29,7 +29,7 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    // 2. 최종 텍스트 데이터 및 구글 시트 저장 로직
+    // 2. 최종 텍스트 데이터 및 구글 시트 저장 로직 (초고속 병렬 처리)
     if (action === "SUBMIT_TEXT_ONLY") {
       var sheet = ss.getSheetByName("작업일지") || ss.insertSheet("작업일지");
       
@@ -39,9 +39,6 @@ function doPost(e) {
         sheet.setFrozenRows(1);
       }
       
-      var folder = getFolder(data.workDate.substring(0,7).replace('-',''));
-      
-      // [수정 2] 첨부사진목록을 세로(\n)가 아닌 가로( / )로 배열하도록 로직 전면 개편
       var photoCellStr = "";
       var links = [];
       var photoKeys = Object.keys(data.uploadedPhotos);
@@ -49,14 +46,21 @@ function doPost(e) {
       for (var i = 0; i < photoKeys.length; i++) {
         var key = photoKeys[i];
         var fileData = data.uploadedPhotos[key];
-        var fileName = fileData.name || fileData;
-        var fileUrl = "파일을 찾을 수 없음";
+        var fileName = fileData.name || "이름없음";
         
-        var files = folder.getFilesByName(fileName);
-        if (files.hasNext()) {
-          fileUrl = files.next().getUrl();
-        } else if (fileData.url) {
-          fileUrl = fileData.url;
+        // 앱에서 넘겨준 URL 즉시 사용 (검색 시간 0초)
+        var fileUrl = fileData.url; 
+        
+        // 방어 코드: URL 누락 시에만 백업으로 드라이브를 검색
+        if (!fileUrl || fileUrl === "URL대기중" || fileUrl === "파일을 찾을 수 없음") {
+          // [핵심 2] 방어 코드에서도 건물명 > 년월 2단계 폴더를 타고 들어가도록 수정
+          var fallbackFolder = getFolder(data.building, data.workDate.substring(0,7).replace('-',''));
+          var files = fallbackFolder.getFilesByName(fileName);
+          if (files.hasNext()) {
+            fileUrl = files.next().getUrl();
+          } else {
+            fileUrl = "파일을 찾을 수 없음";
+          }
         }
 
         var startIdx = photoCellStr.length;
@@ -64,7 +68,6 @@ function doPost(e) {
         var endIdx = photoCellStr.length;
         links.push({start: startIdx, end: endIdx, url: fileUrl});
         
-        // 마지막 항목이 아니면 슬래시(/)로 가로 이어붙이기
         if (i < photoKeys.length - 1) {
           photoCellStr += " / "; 
         }
@@ -75,7 +78,6 @@ function doPost(e) {
          checklistStr = data.checklist.map(function(c) { return c.item + "(" + c.checked + ")"; }).join(" / ");
       }
       
-      // 16개 열 순서 엄격 준수 데이터 적재
       sheet.appendRow([
         data.workDate,
         data.startTime || "",
@@ -90,7 +92,7 @@ function doPost(e) {
         data.interiorHumid ? data.interiorHumid + "%" : "미입력",
         data.customerReq || "",
         data.memo || data.workMemo || "",
-        "", // 14번째 열 (아래에서 하이퍼링크 덮어씌움)
+        "", // 하이퍼링크 덮어씌울 공간
         data.worker,
         new Date()
       ]);
@@ -129,9 +131,26 @@ function doPost(e) {
   }
 }
 
-// [수정 3] 지정된 ID 기반 폴더 생성 로직으로 교체
-function getFolder(folderName) {
-  var parent = DriveApp.getFolderById(BASE_FOLDER_ID);
-  var targets = parent.getFoldersByName(folderName);
-  return targets.hasNext() ? targets.next() : parent.createFolder(folderName);
+// =================================================================
+// [핵심 변경점] 2-Depth 폴더 생성/탐색 로직 (건물명 -> 년월 순차 확인)
+// =================================================================
+function getFolder(buildingName, yearMonthStr) {
+  var root = DriveApp.getFolderById(BASE_FOLDER_ID);
+  
+  // 1단계: 건물명 폴더 탐색 (없으면 생성)
+  var buildingFolders = root.getFoldersByName(buildingName);
+  var buildingFolder;
+  if (buildingFolders.hasNext()) {
+    buildingFolder = buildingFolders.next();
+  } else {
+    buildingFolder = root.createFolder(buildingName);
+  }
+  
+  // 2단계: 건물명 폴더 내부에 년월(예: 202604) 폴더 탐색 (없으면 생성)
+  var yearMonthFolders = buildingFolder.getFoldersByName(yearMonthStr);
+  if (yearMonthFolders.hasNext()) {
+    return yearMonthFolders.next();
+  } else {
+    return buildingFolder.createFolder(yearMonthStr);
+  }
 }
