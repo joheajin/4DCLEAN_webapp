@@ -68,8 +68,6 @@
       .photo-btn-label-alt { background: #64748b; } 
       .photo-btn-label.success { background: var(--success) !important; }
       .photo-btn-label.uploading { background: var(--weather-available) !important; color: #1e293b; pointer-events: none; }
-      
-      /* [수정 1 추가] 비활성화 상태용 클래스 */
       .photo-btn-label.disabled-btn { opacity: 0.3; pointer-events: none; }
       
       .task-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
@@ -84,6 +82,13 @@
       .status-tabs span { display: block; padding: 8px 0; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); border-radius: 6px; }
       .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; }
 
+      /* [신규] 월간리포트 사진 전용 핑크색 라디오 버튼 스타일 */
+      .report-status-tabs { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 8px; border: 1px solid #fbcfe8; margin-bottom: 10px; }
+      .report-status-tabs label { flex: 1; text-align: center; margin: 0; cursor: pointer; }
+      .report-status-tabs input[type="radio"] { display: none; }
+      .report-status-tabs span { display: block; padding: 8px 0; font-size: 0.8rem; font-weight: bold; color: #ec4899; border-radius: 6px; transition: all 0.2s; }
+      .report-status-tabs input[type="radio"]:checked + span { background: #ec4899; color: white; }
+
       .loading-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; color: white; backdrop-filter: blur(5px); }
       .spinner { width: 50px; height: 50px; border: 5px solid #334155; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
       @keyframes spin { to { transform: rotate(360deg); } }
@@ -92,11 +97,9 @@
       .dark-mode .flatpickr-day { color: #f1f5f9 !important; }
       .dark-mode .flatpickr-day.nextMonthDay, .dark-mode .flatpickr-day.prevMonthDay { color: #475569 !important; }
       .dark-mode .flatpickr-months .flatpickr-month, .dark-mode .flatpickr-current-month, .dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months, .dark-mode .flatpickr-current-month input.cur-year, .dark-mode span.flatpickr-weekday { color: #ffffff !important; fill: #ffffff !important; }
-      
       html body .flatpickr-calendar .flatpickr-day.weather-available, html body.dark-mode .flatpickr-calendar .flatpickr-day.weather-available { color: var(--weather-available) !important; font-weight: 900 !important; text-shadow: 0 0 5px rgba(250, 204, 21, 0.5) !important; }
       .flatpickr-day.selected, .dark-mode .flatpickr-day.selected { background: var(--primary) !important; border-color: var(--primary) !important; color: #ffffff !important; }
 
-      /* [신규] 현장 태그 스타일 */
       .building-tag { display: inline-flex; align-items: center; background: var(--input-bg); border: 1px solid var(--primary); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
       .building-tag button { margin-left: 6px; background: none; border: none; color: var(--danger); font-size: 1.1rem; cursor: pointer; padding: 0 4px; line-height: 1; }
     </style>
@@ -122,7 +125,6 @@
             <label>작업 날짜 <input id="workDate" type="text" placeholder="날짜 선택" readonly></label>
             <label>현장 작업자 <select id="workerName" class="auto-save"><option value="이영준">이영준</option><option value="조혜진">조혜진</option></select></label>
           </div>
-          <!-- [수정] 현장명 옵션을 하드코딩하지 않고 JS에서 동적으로 채움 -->
           <label style="margin-top:10px;">현장 <select id="buildingSelect" class="auto-save" onchange="updateChecklist(true)"></select></label>
           
           <div class="time-select-grid">
@@ -171,8 +173,14 @@
             <input id="photoThermometerGal" type="file" accept="image/*" style="display:none;" onchange="handleImmediateUpload(this, 'photoThermometerGalLabel', 'gal', 'main_thermometer')">
             <label id="photoThermometerGalLabel" class="photo-btn-label photo-btn-label-alt" onclick="document.getElementById('photoThermometerGal').click()">🖼️ 온습도계 사진첨부</label>
           </div>
+          
           <div id="fieldPhotos"></div>
-          <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:15px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
+          
+          <!-- 버튼부: 작업 사진 & 리포트 사진 -->
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:15px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
+            <button id="addReportPhotoBtn" type="button" style="width:100%; padding:15px; background:#ec4899; color:white; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(236, 72, 153, 0.2);">📸 월간리포트 사진 추가</button>
+          </div>
         </section>
 
         <section class="card">
@@ -189,8 +197,6 @@
             <button id="loadRulesFromServerBtn" type="button" style="background:#10b981; color:white; border:none; border-radius:6px; padding:6px 12px; font-size:0.8rem; font-weight:bold;">📥 서버에서 불러오기</button>
           </div>
           <div id="rulesAdminContainer">
-            
-            <!-- [신규] 현장(건물) 관리 섹션 추가 -->
             <div class="rule-section-box">
               <h3>현장 관리</h3>
               <p style="font-size:0.75rem; color:var(--text-muted); margin-top:-10px; margin-bottom:10px;">등록된 현장만 작업 기록 및 규칙 설정에서 선택할 수 있습니다.</p>
@@ -215,9 +221,9 @@
 
     <script>
       const APP_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwgkKi6qzWkd4ZBM1xECxtgdO80ynvIaUb5C3YoQQ6z7Ae_qN6hb1WnYXBircD5QThJDw/exec";
-      // [수정] buildings 배열을 globalRules에 통합 관리 (초기값 지정)
       let globalRules = { buildings: ['백산빌딩', '효성빌딩'], defaultRules: [], monthlyRules: [], eventRules: [] };
       let extraPhotoCount = 0;
+      let reportPhotoCount = 0;
       let isExpanded = false;
       let uploadedPhotos = {}; 
 
@@ -258,7 +264,8 @@
           workDate: document.getElementById('workDate').value,
           checklist: checklistData,
           uploadedPhotos: uploadedPhotos,
-          extraPhotoCount: extraPhotoCount
+          extraPhotoCount: extraPhotoCount,
+          reportPhotoCount: reportPhotoCount
         };
         localStorage.setItem('4d_draft', JSON.stringify(draft));
       }
@@ -280,7 +287,6 @@
               if (uploadedPhotos['main_thermometer']) {
                 document.getElementById('photoThermometerCamLabel').innerText = "✅ 업로드 완료";
                 document.getElementById('photoThermometerCamLabel').classList.add('success');
-                // [수정 1 적용] 숨김 처리 대신 시각적 비활성화 처리 (복구 시점)
                 document.getElementById('photoThermometerGalLabel').classList.add('disabled-btn');
               }
             }
@@ -290,11 +296,22 @@
                 if (uploadedPhotos[`extra_${i}`]) {
                    document.getElementById(`label_file_extra_${i}_cam`).innerText = "✅ 업로드 완료";
                    document.getElementById(`label_file_extra_${i}_cam`).classList.add('success');
-                   // [수정 1 적용] 숨김 처리 대신 시각적 비활성화 처리 (복구 시점)
                    document.getElementById(`label_file_extra_${i}_gal`).classList.add('disabled-btn');
                 }
               }
               extraPhotoCount = draft.extraPhotoCount;
+            }
+            
+            if (draft.reportPhotoCount) {
+              for(let i=1; i<=draft.reportPhotoCount; i++) {
+                addReportPhotoRow(i);
+                if (uploadedPhotos[`report_${i}`]) {
+                   document.getElementById(`label_file_report_${i}_cam`).innerText = "✅ 업로드 완료";
+                   document.getElementById(`label_file_report_${i}_cam`).classList.add('success');
+                   document.getElementById(`label_file_report_${i}_gal`).classList.add('disabled-btn');
+                }
+              }
+              reportPhotoCount = draft.reportPhotoCount;
             }
           }
         } catch(e) { console.error("Draft 로드 실패", e); }
@@ -320,6 +337,13 @@
           let fileName = "";
           if (photoKey === 'main_thermometer') {
             fileName = `${workDate}_내부온습도.JPG`;
+          } else if (photoKey.startsWith('report_')) {
+            // [신규] 월간리포트용 상태값(작업전/작업후)을 가져와 파일명 생성
+            const id = photoKey.split('_')[1];
+            const rRad = document.querySelector(`input[name="report_status_${id}"]:checked`);
+            let rStatus = rRad ? rRad.value : "작업전";
+            // 혹시 모를 덮어쓰기 방지를 위해 마지막에 id를 부여합니다.
+            fileName = `${workDate}_${building}_리포트_${rStatus}_${id}.JPG`.replace(/\s+/g, '_');
           } else {
             const id = photoKey.split('_')[1];
             const taskRad = document.querySelector(`input[name="task_${id}"]:checked`);
@@ -343,7 +367,6 @@
             label.classList.remove('uploading');
             label.classList.add('success');
             
-            // [수정 1 적용] 반대쪽 버튼 찾기 로직 교정 및 비활성화 처리
             let otherBtnId = "";
             if (photoKey === 'main_thermometer') {
               otherBtnId = (type === 'cam') ? 'photoThermometerGalLabel' : 'photoThermometerCamLabel';
@@ -362,14 +385,12 @@
       }
 
       window.onload = async () => {
-        // [수정] 초기 로딩 시 rules 캐시 복구 로직 강화 (현장 리스트 유실 방지)
         try {
           const cacheStr = localStorage.getItem('4d_rules_cache');
           if (cacheStr && cacheStr !== "undefined") {
             const parsed = JSON.parse(cacheStr);
             if(parsed) {
               globalRules = parsed;
-              // 기존 캐시에 buildings 배열이 없었다면 기본값 부여
               if (!globalRules.buildings || globalRules.buildings.length === 0) {
                 globalRules.buildings = ['백산빌딩', '효성빌딩'];
               }
@@ -378,8 +399,6 @@
         } catch (e) { console.error("규칙 로딩 실패", e); }
 
         initTimeOptions(); initSelects();
-        
-        // 동적 현장 리스트 UI 렌더링
         renderBuildingsUI();
 
         const todayStr = new Date().toISOString().split('T')[0];
@@ -457,6 +476,8 @@
       };
 
       document.getElementById('addFieldPhotoBtn').onclick = () => { extraPhotoCount++; addExtraPhotoRow(extraPhotoCount); saveDraft(); };
+      
+      document.getElementById('addReportPhotoBtn').onclick = () => { reportPhotoCount++; addReportPhotoRow(reportPhotoCount); saveDraft(); };
 
       function addExtraPhotoRow(id) {
         const div = document.createElement('div'); div.className = 'extra-photo-row'; div.id = `row_extra_${id}`;
@@ -468,6 +489,19 @@
           ${taskBtns}<input type="text" id="custom_task_${id}" placeholder="추가 항목 내용 입력" style="display:none; margin-bottom: 12px; background:var(--bg-main);" class="auto-save"><div class="status-tabs"><label><input type="radio" name="status_${id}" value="작업전" onchange="saveDraft()"><span>작업전</span></label><label><input type="radio" name="status_${id}" value="작업중" checked onchange="saveDraft()"><span>작업중</span></label><label><input type="radio" name="status_${id}" value="작업후" onchange="saveDraft()"><span>작업후</span></label><label><input type="radio" name="status_${id}" value="현장사진" onchange="saveDraft()"><span>현장사진</span></label></div><div class="photo-btn-group"><input type="file" id="file_extra_${id}_cam" accept="image/*" capture="environment" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_extra_${id}_cam', 'cam', 'extra_${id}')"><label id="label_file_extra_${id}_cam" class="photo-btn-label" onclick="document.getElementById('file_extra_${id}_cam').click()">📸 사진촬영</label><input type="file" id="file_extra_${id}_gal" accept="image/*" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_extra_${id}_gal', 'gal', 'extra_${id}')"><label id="label_file_extra_${id}_gal" class="photo-btn-label photo-btn-label-alt" onclick="document.getElementById('file_extra_${id}_gal').click()">🖼️ 사진첨부</label></div>`;
         document.getElementById('fieldPhotos').appendChild(div);
         handleTaskSelect(id);
+      }
+
+      // [신규] 리포트 사진 UI 생성 렌더링 함수에 '작업전/작업후' 라디오 버튼 추가
+      function addReportPhotoRow(id) {
+        const div = document.createElement('div'); div.className = 'extra-photo-row'; div.id = `row_report_${id}`;
+        div.style.borderColor = '#ec4899';
+        div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;"><span style="font-size:0.8rem; color:#ec4899; font-weight:bold;">✨ 월간리포트용 사진 #${id}</span><button type="button" onclick="document.getElementById('row_report_${id}').remove(); delete uploadedPhotos['report_${id}']; saveDraft();" style="background:none; border:none; color:var(--danger); font-size:0.75rem;">삭제</button></div>
+          <div class="report-status-tabs">
+            <label><input type="radio" name="report_status_${id}" value="작업전" onchange="saveDraft()" checked><span>작업전</span></label>
+            <label><input type="radio" name="report_status_${id}" value="작업후" onchange="saveDraft()"><span>작업후</span></label>
+          </div>
+          <div class="photo-btn-group"><input type="file" id="file_report_${id}_cam" accept="image/*" capture="environment" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_report_${id}_cam', 'cam', 'report_${id}')"><label id="label_file_report_${id}_cam" class="photo-btn-label" style="background:#ec4899;" onclick="document.getElementById('file_report_${id}_cam').click()">📸 리포트 촬영</label><input type="file" id="file_report_${id}_gal" accept="image/*" style="display:none;" onchange="handleImmediateUpload(this, 'label_file_report_${id}_gal', 'gal', 'report_${id}')"><label id="label_file_report_${id}_gal" class="photo-btn-label photo-btn-label-alt" onclick="document.getElementById('file_report_${id}_gal').click()">🖼️ 리포트 첨부</label></div>`;
+        document.getElementById('fieldPhotos').appendChild(div);
       }
 
       window.handleTaskSelect = function(id) {
@@ -503,9 +537,6 @@
 
       document.getElementById('btnExpandTime').onclick = function() { isExpanded = !isExpanded; this.innerText = isExpanded ? "시간 축소" : "시간 확장 (00~23시)"; initTimeOptions(); syncEndTime(); };
 
-      // ==========================================
-      // [신규] 현장(건물) 동적 관리 로직
-      // ==========================================
       window.renderBuildingsUI = function() {
         const container = document.getElementById('buildingListContainer');
         container.innerHTML = '';
@@ -518,7 +549,6 @@
           container.appendChild(span);
         });
 
-        // 메인 탭 및 모든 규칙 탭의 현장 드롭다운 업데이트
         updateAllBuildingSelects();
       };
 
@@ -551,13 +581,11 @@
         const buildings = globalRules.buildings || ['백산빌딩', '효성빌딩'];
         const optionsHtml = buildings.map(b => `<option value="${b}">${b}</option>`).join('');
         
-        // 1. 작업 기록 탭 (메인) 업데이트
         const mainSelect = document.getElementById('buildingSelect');
         const currentMainVal = mainSelect.value;
         mainSelect.innerHTML = optionsHtml;
         if (buildings.includes(currentMainVal)) mainSelect.value = currentMainVal;
         
-        // 2. 규칙 설정 탭 내의 모든 셀렉트 박스 업데이트
         document.querySelectorAll('.rule-building').forEach(sel => {
           const currentVal = sel.value;
           sel.innerHTML = optionsHtml;
@@ -575,7 +603,6 @@
       window.addRuleRow = function(type, data = {}) {
         const div = document.createElement('div'); div.className = 'rule-row'; div.style.background = "var(--bg-container)"; div.style.padding = "10px"; div.style.marginBottom = "10px"; div.style.borderRadius = "8px"; div.style.border = "1px solid var(--border-color)";
         
-        // [수정] 규칙 추가 시 현재 등록된 현장 목록으로 옵션 생성
         const buildings = globalRules.buildings || ['백산빌딩', '효성빌딩'];
         const buildingOptionsHtml = buildings.map(b => `<option value="${b}" ${data.building===b?'selected':''}>${b}</option>`).join('');
 
@@ -598,7 +625,6 @@
           return d;
         });
         
-        // [수정] 저장 시 동적 buildings 배열도 포함하여 서버/로컬에 저장
         globalRules = { 
           buildings: globalRules.buildings,
           defaultRules: collect('defaultRulesList', 'default'), 
@@ -618,13 +644,11 @@
           const json = await res.json();
           if (json.status === "success" && json.data) { 
             globalRules = json.data; 
-            // 방어 코드: 서버에서 가져온 데이터에 buildings가 없을 경우
             if (!globalRules.buildings || globalRules.buildings.length === 0) {
                 globalRules.buildings = ['백산빌딩', '효성빌딩'];
             }
             localStorage.setItem('4d_rules_cache', JSON.stringify(globalRules)); 
-            
-            renderBuildingsUI(); // 현장 리스트 UI 갱신
+            renderBuildingsUI(); 
             renderSettingsUI(); 
             updateChecklist(true); 
             alert("📥 서버 데이터 동기화 완료!"); 
@@ -668,6 +692,16 @@
               extHumid = wMatch[3].trim();
           }
 
+          const regularPhotos = {};
+          const reportPhotos = {};
+          for (let key in uploadedPhotos) {
+            if (key.startsWith('report_')) {
+              reportPhotos[key] = uploadedPhotos[key];
+            } else {
+              regularPhotos[key] = uploadedPhotos[key];
+            }
+          }
+
           const payload = {
             action: "SUBMIT_TEXT_ONLY",
             workDate: document.getElementById('workDate').value, startTime: `${stH}:${stM}`, endTime: `${etH}:${etM}`, workDuration: `${Math.floor(diffMin/60)}시간 ${diffMin%60}분`,
@@ -676,7 +710,9 @@
             interiorTemp: document.getElementById('interiorTemp').value,
             interiorHumid: document.getElementById('interiorHumidity').value, customerReq: document.getElementById('customerRequest').value,
             memo: document.getElementById('workMemo').value, yearMonthFolder: document.getElementById('workDate').value.substring(0,7).replace('-',''),
-            checklist: checklist, uploadedPhotos: uploadedPhotos
+            checklist: checklist, 
+            uploadedPhotos: regularPhotos, 
+            reportPhotos: reportPhotos     
           };
           await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
           localStorage.removeItem('4d_draft'); alert("✅ 일지 전송 성공!"); location.reload();
