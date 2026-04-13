@@ -82,7 +82,6 @@
       .status-tabs span { display: block; padding: 8px 0; font-size: 0.8rem; font-weight: bold; color: var(--text-muted); border-radius: 6px; }
       .status-tabs input[type="radio"]:checked + span { background: var(--primary); color: white; }
 
-      /* [신규] 월간리포트 사진 전용 핑크색 라디오 버튼 스타일 */
       .report-status-tabs { display: flex; gap: 4px; background: var(--input-bg); padding: 4px; border-radius: 8px; border: 1px solid #fbcfe8; margin-bottom: 10px; }
       .report-status-tabs label { flex: 1; text-align: center; margin: 0; cursor: pointer; }
       .report-status-tabs input[type="radio"] { display: none; }
@@ -176,7 +175,6 @@
           
           <div id="fieldPhotos"></div>
           
-          <!-- 버튼부: 작업 사진 & 리포트 사진 -->
           <div style="display:flex; flex-direction:column; gap:8px;">
             <button id="addFieldPhotoBtn" type="button" style="width:100%; padding:15px; background:#10b981; color:white; border:none; border-radius:8px; font-weight:bold;">+ 작업 사진 추가</button>
             <button id="addReportPhotoBtn" type="button" style="width:100%; padding:15px; background:#ec4899; color:white; border:none; border-radius:8px; font-weight:bold; box-shadow: 0 4px 6px rgba(236, 72, 153, 0.2);">📸 월간리포트 사진 추가</button>
@@ -338,11 +336,9 @@
           if (photoKey === 'main_thermometer') {
             fileName = `${workDate}_내부온습도.JPG`;
           } else if (photoKey.startsWith('report_')) {
-            // [신규] 월간리포트용 상태값(작업전/작업후)을 가져와 파일명 생성
             const id = photoKey.split('_')[1];
             const rRad = document.querySelector(`input[name="report_status_${id}"]:checked`);
             let rStatus = rRad ? rRad.value : "작업전";
-            // 혹시 모를 덮어쓰기 방지를 위해 마지막에 id를 부여합니다.
             fileName = `${workDate}_${building}_리포트_${rStatus}_${id}.JPG`.replace(/\s+/g, '_');
           } else {
             const id = photoKey.split('_')[1];
@@ -400,6 +396,11 @@
 
         initTimeOptions(); initSelects();
         renderBuildingsUI();
+
+        // [신규 변경] 앱 구동 시 기본 시작 시간을 06:30으로 맞추고 종료시간을 자동으로 1시간 뒤로 세팅합니다.
+        document.getElementById('startHour').value = "06";
+        document.getElementById('startMin').value = "30";
+        syncEndTime();
 
         const todayStr = new Date().toISOString().split('T')[0];
         flatpickr("#workDate", { 
@@ -491,7 +492,6 @@
         handleTaskSelect(id);
       }
 
-      // [신규] 리포트 사진 UI 생성 렌더링 함수에 '작업전/작업후' 라디오 버튼 추가
       function addReportPhotoRow(id) {
         const div = document.createElement('div'); div.className = 'extra-photo-row'; div.id = `row_report_${id}`;
         div.style.borderColor = '#ec4899';
@@ -531,8 +531,8 @@
       function initSelects() {
         const ts = document.getElementById('interiorTemp'), hs = document.getElementById('interiorHumidity');
         ts.innerHTML = '<option value="">미선택</option>'; hs.innerHTML = '<option value="">미선택</option>';
-        for(let i=10; i<=40; i++) ts.innerHTML += `<option value="${i}">${i}°C</option>`;
-        for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}%</option>`;
+        for(let i=10; i<=40; i++) ts.innerHTML += `<option value="${i}">${i}</option>`;
+        for(let i=0; i<=100; i+=5) hs.innerHTML += `<option value="${i}">${i}</option>`;
       }
 
       document.getElementById('btnExpandTime').onclick = function() { isExpanded = !isExpanded; this.innerText = isExpanded ? "시간 축소" : "시간 확장 (00~23시)"; initTimeOptions(); syncEndTime(); };
