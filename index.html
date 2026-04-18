@@ -224,7 +224,7 @@
       let reportPhotoCount = 0;
       let isExpanded = false;
       let uploadedPhotos = {}; 
-
+      let isSubmitting = false; // [신규] 정상적인 전송(저장) 중인지 확인하는 플래그
       async function fetchWithRetry(url, options, maxRetries = 5) {
         let delay = 1000;
         for (let i = 0; i < maxRetries; i++) {
@@ -426,6 +426,32 @@
         initAutoSaveListeners();
         const savedTheme = localStorage.getItem('4d_theme') || 'dark';
         if (savedTheme === 'light') { document.body.classList.remove('dark-mode'); document.getElementById('themeToggleBtn').innerText = '🌙'; }
+
+        // ==========================================
+        // [신규] '뒤로가기' 및 앱 강제 이탈 완벽 방어 로직
+        // ==========================================
+        
+        // 1. 모바일 '뒤로가기' 하드웨어 버튼 감지 및 경고
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function(event) {
+          if (isSubmitting) return; // 정상 전송 버튼을 눌렀을 때는 막지 않음
+          
+          if (confirm("⚠️ 잠깐만요!\n아직 서버에 전송되지 않은 내용이 있습니다.\n\n정말 화면을 나가시겠습니까?\n(취소를 누르시면 입력 내용이 안전하게 유지됩니다)")) {
+            history.back(); // 사용자가 '확인(나가기)'을 누르면 진짜 나감
+          } else {
+            history.pushState(null, null, location.href); // '취소'를 누르면 현재 화면에 강제 결박
+          }
+        });
+
+        // 2. 브라우저 탭 닫기, 새로고침 감지 및 경고
+        window.addEventListener('beforeunload', function (e) {
+          if (isSubmitting) return;
+          e.preventDefault();
+          e.returnValue = ''; // 브라우저 기본 경고창 띄우기
+        });
+
+        // 3. 초강력 임시저장 엔진: 3초마다 무조건 현재 상태를 백그라운드에 저장 (앱 강제 종료 대비)
+        setInterval(saveDraft, 3000);
       };
 
       async function fetchWeather(targetDate) {
@@ -714,9 +740,12 @@
             uploadedPhotos: regularPhotos, 
             reportPhotos: reportPhotos     
           };
+          
+          isSubmitting = true; // [신규] "작업 서버 저장"을 눌렀으므로 경고창 해제 명령
+          
           await fetchWithRetry(APP_SCRIPT_URL, { method:'POST', mode:'no-cors', body: JSON.stringify(payload) });
           localStorage.removeItem('4d_draft'); alert("✅ 일지 전송 성공!"); location.reload();
-        } catch (e) { alert("❌ 에러: " + e.message); } finally { overlay.style.display = 'none'; }
+        } catch (e) { alert("❌ 에러: " + e.message); isSubmitting = false; } finally { overlay.style.display = 'none'; }
       };
 
       function switchTab(t) {
